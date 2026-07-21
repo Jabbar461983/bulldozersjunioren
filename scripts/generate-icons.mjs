@@ -64,9 +64,9 @@ function encodePng(width, height, rgbaPixels) {
   ]);
 }
 
-// Team-Grundfarben aus dem Datenmodell (farbe_primaer/-sekundaer Default).
-const PRIMARY = [15, 23, 42]; // #0f172a
-const ACCENT = [56, 189, 248]; // #38bdf8
+// Vereinsfarben Streethockeyclub Bulldozers (Gruen/Gold).
+const PRIMARY = [14, 110, 69]; // #0e6e45
+const ACCENT = [176, 141, 42]; // #b08d2a
 
 function distance(x, y, cx, cy) {
   return Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);

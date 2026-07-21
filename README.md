@@ -1,7 +1,7 @@
-# Streethockey Junioren-Tracker
+# Bulldozers Challenge
 
-Progressive Web App (PWA) fuer Streethockey-Junioren: Uebungen zum Zuhause-Trainieren,
-Selbsteinschaetzung und Ranglisten zum Vergleichen mit dem Team.
+Progressive Web App (PWA) fuer die Junioren des Streethockeyclub Bulldozers: Uebungen zum
+Zuhause-Trainieren, Selbsteinschaetzung und Ranglisten zum Vergleichen mit dem Team.
 
 **Phase 1:** Projekt-Grundgerüst, Authentifizierung, Rollen- und Berechtigungssystem, Datenmodell.
 **Phase 2:** Übungsverwaltung für Trainer/Admin (Erstellen, Bearbeiten, Löschen, Filtern).

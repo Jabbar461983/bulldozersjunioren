@@ -5,9 +5,10 @@
   --color-text-muted: #5b6172;
   --color-border: #dfe3ea;
   /* Werden zur Laufzeit vom eingeloggten Team ueberschrieben (Phase 6, siehe
-     src/lib/theme.ts) — Werte hier sind der Standard ohne Team (z. B. Admin). */
-  --color-primary: #0f172a;
-  --color-accent: #38bdf8;
+     src/lib/theme.ts) — Werte hier sind der Standard ohne Team (z. B. Admin)
+     und entsprechen den Vereinsfarben des Streethockeyclub Bulldozers. */
+  --color-primary: #0e6e45;
+  --color-accent: #b08d2a;
   --color-danger: #dc2626;
   --color-danger-bg: #fee2e2;
   /* Verspielt-rundes "Sticker"-Design (Phase 6): grosszuegiger Radius statt
@@ -26,8 +27,8 @@
     --color-text: #e5e7eb;
     --color-text-muted: #9aa1b2;
     --color-border: #2a2e38;
-    --color-primary: #38bdf8;
-    --color-accent: #38bdf8;
+    --color-primary: #2f9d6c;
+    --color-accent: #d1a941;
     --color-danger: #f87171;
     --color-danger-bg: #3f1d1d;
   }

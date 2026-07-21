@@ -6,7 +6,7 @@ interface MaskottchenProps {
   size?: number;
 }
 
-// "Pucky" – das Maskottchen des Streethockey Junioren-Trackers: ein
+// "Pucky" – das Maskottchen der Bulldozers Challenge: ein
 // freundlicher, comic-artiger Hockey-Puck mit Gesicht. Bewusst in einer
 // eigenen, immer gleichen Farbe gehalten (statt Team-Theme-Farben), damit er
 // als wiedererkennbarer Charakter unabhaengig vom jeweiligen Vereins-Branding

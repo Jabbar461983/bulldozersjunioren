@@ -16,13 +16,14 @@ export default defineConfig({
         importScripts: ['push-sw.js'],
       },
       manifest: {
-        name: 'Streethockey Junioren-Tracker',
-        short_name: 'SH Tracker',
+        name: 'Bulldozers Challenge',
+        short_name: 'Bulldozers',
         description:
-          'Uebungen fuer Streethockey Junioren zum Zuhause-Trainieren und Vergleichen.',
-        // Platzhalter-Theme-Farben, werden in spaeteren Phasen ggf. pro Team angepasst.
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+          'Uebungen fuer die Bulldozers Junioren zum Zuhause-Trainieren und Vergleichen.',
+        // Vereinsfarben Streethockeyclub Bulldozers (Gruen/Gold). Pro Team kann dies
+        // zur Laufzeit ueberschrieben werden (siehe src/lib/theme.ts).
+        theme_color: '#0e6e45',
+        background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
         scope: '/',

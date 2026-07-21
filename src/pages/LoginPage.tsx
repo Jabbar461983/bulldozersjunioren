@@ -34,7 +34,7 @@ export function LoginPage() {
         <div className="brand">
           <div className="brand-badge">🏒</div>
           <div>
-            <h1 style={{ fontSize: '1.25rem' }}>Streethockey Junioren-Tracker</h1>
+            <h1 style={{ fontSize: '1.25rem' }}>Bulldozers Challenge</h1>
           </div>
         </div>
 
