@@ -24,14 +24,9 @@ export function RanglisteCard() {
     setLoading(true);
     setError(null);
 
-    let query = supabase
-      .from('rangliste')
-      .select('*')
-      .order('punkte_total', { ascending: false });
-
-    if (filterTeam) query = query.eq('team_id', filterTeam);
-
-    const { data, error } = await query;
+    const { data, error } = await supabase.rpc('rangliste', {
+      p_team_id: filterTeam || null,
+    });
     if (error) setError(error.message);
     else setEintraege(data ?? []);
     setLoading(false);

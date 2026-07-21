@@ -177,16 +177,15 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: {
-      rangliste: {
-        Row: RanglisteEintrag;
-        Relationships: [];
-      };
-    };
+    Views: Record<string, never>;
     Functions: {
       admin_exists: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
+      };
+      rangliste: {
+        Args: { p_team_id: string | null };
+        Returns: RanglisteEintrag[];
       };
       current_user_role: {
         Args: Record<PropertyKey, never>;
