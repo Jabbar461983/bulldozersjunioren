@@ -1,0 +1,72 @@
+:root {
+  --color-bg: #f3f5f8;
+  --color-surface: #ffffff;
+  --color-text: #14171f;
+  --color-text-muted: #5b6172;
+  --color-border: #dfe3ea;
+  --color-primary: #0f172a;
+  --color-accent: #38bdf8;
+  --color-danger: #dc2626;
+  --color-danger-bg: #fee2e2;
+  --radius: 12px;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0b0d12;
+    --color-surface: #171a21;
+    --color-text: #e5e7eb;
+    --color-text-muted: #9aa1b2;
+    --color-border: #2a2e38;
+    --color-primary: #38bdf8;
+    --color-accent: #38bdf8;
+    --color-danger: #f87171;
+    --color-danger-bg: #3f1d1d;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 8px;
+}
+
+p {
+  margin: 0 0 12px;
+  color: var(--color-text-muted);
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.centered-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
