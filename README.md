@@ -3,8 +3,9 @@
 Progressive Web App (PWA) fuer Streethockey-Junioren: Uebungen zum Zuhause-Trainieren,
 Selbsteinschaetzung und Ranglisten zum Vergleichen mit dem Team.
 
-**Phase 1 (dieses Repo-Stadium):** Projekt-Grundgerüst, Authentifizierung, Rollen- und
-Berechtigungssystem, Datenmodell. Übungen, Ranglisten, Badges etc. folgen in späteren Phasen.
+**Phase 1:** Projekt-Grundgerüst, Authentifizierung, Rollen- und Berechtigungssystem, Datenmodell.
+**Phase 2 (dieses Repo-Stadium):** Übungsverwaltung für Trainer/Admin (Erstellen, Bearbeiten,
+Löschen, Filtern). Ranglisten, Badges, Selbsteinschätzung etc. folgen in späteren Phasen.
 
 ## Tech-Stack
 
@@ -46,9 +47,10 @@ scripts/
 
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
-3. Das Datenbankschema anlegen: Inhalt von `supabase/migrations/0001_init.sql` im
-   **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
-   `supabase db push`, sofern das Projekt lokal verlinkt ist).
+3. Das Datenbankschema anlegen: Inhalt von `supabase/migrations/0001_init.sql` und danach
+   `supabase/migrations/0002_uebungen_phase2.sql` im **SQL Editor** des Supabase-Dashboards
+   ausführen (oder via Supabase CLI: `supabase db push`, sofern das Projekt lokal verlinkt ist).
+   Die zweite Migration legt u. a. den Storage-Bucket `uebung-bilder` für Bild-Uploads an.
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -130,12 +132,33 @@ Siehe `supabase/migrations/0001_init.sql` für das vollständige Schema inkl. Ko
 
 - `teams` — Name, Altersgruppe (U9/U12/U15/U18), Platzhalter für Logo/Farben
 - `users` — Profil, Rolle, Team-Zugehörigkeit, Punkte/Level/Streak (Felder für spätere Phasen)
-- `uebungen` — Titel, Kategorie, Ziel-Altersgruppen, Ersteller
+- `uebungen` — Titel, Beschreibung, Kategorie, Ziel-Altersgruppen, Bild-URL, Ersteller.
+  `video_url` existiert im Schema bereits, wird aber erst in einer späteren Phase genutzt
+  (im Formular als ausgegrautes Feld sichtbar).
 - `selbsteinschaetzungen` — Junior bewertet eine Übung (geschafft, Sterne, Punkte)
 - `badges` / `junior_badges` — Auszeichnungs-Katalog und Zuordnung zu Junioren
 
+## Übungsverwaltung (Phase 2)
+
+Trainer und Admin sehen auf ihrer Startseite eine **Übungen**-Karte (`UebungenManager`):
+
+- **Erstellen/Bearbeiten** (`UebungForm`): Titel, Beschreibung, Kategorie (genau eine),
+  Altersgruppen (Mehrfachauswahl), Bild entweder als externe URL oder als Datei-Upload in den
+  Supabase-Storage-Bucket `uebung-bilder`. Das Feld `Video-URL` ist bewusst deaktiviert
+  ("Kommt in einer späteren Version") — Vorbereitung für eine spätere Phase.
+- **Validierung:** Titel/Beschreibung sind Pflichtfelder (native HTML-Validierung), Kategorie
+  und mindestens eine Altersgruppe müssen ausgewählt sein, bevor gespeichert werden kann.
+- **Filter:** Übersicht lässt sich nach Kategorie und Altersgruppe filtern, sortiert nach
+  Kategorie.
+- **Rechte:** Bearbeiten/Löschen ist nur für die eigene Übung (Ersteller) bzw. für Admin (alle)
+  sichtbar — serverseitig zusätzlich über RLS-Policies auf `uebungen` und `storage.objects`
+  erzwungen. Löschen erfordert eine Bestätigung im Dialog (`ConfirmDialog`).
+- Welche Übungen ein Trainer überhaupt sieht, wird bereits über RLS auf die Altersgruppe(n)
+  seines eigenen Teams beschränkt; Admin sieht alle Übungen aller Altersgruppen.
+
 ## Bekannte Grenzen dieser Phase
 
-- Home-Seiten für Junior/Trainer/Admin sind bewusst rudimentär (Platzhalter-Karten) — Übungen,
-  Ranglisten, Badges etc. folgen in späteren Bauphasen.
-- E-Mail-Templates, Passwort-Reset-UI und Profilbearbeitung sind noch nicht Teil von Phase 1.
+- Home-Seiten für Junior sind weiterhin bewusst rudimentär (Platzhalter-Karten) — Übungen für
+  Junioren, Selbsteinschätzung, Ranglisten und Badges folgen in späteren Bauphasen.
+- Nutzerverwaltung (Admin) ist noch ein Platzhalter.
+- E-Mail-Templates, Passwort-Reset-UI und Profilbearbeitung sind noch nicht umgesetzt.

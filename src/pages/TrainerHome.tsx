@@ -1,4 +1,5 @@
 import { DashboardLayout } from '../components/DashboardLayout';
+import { UebungenManager } from '../components/UebungenManager';
 
 export function TrainerHome() {
   return (
@@ -7,10 +8,7 @@ export function TrainerHome() {
         <h2>Meine Junioren</h2>
         <p>Hier erscheinen bald die Junioren deines Teams samt Fortschritt.</p>
       </div>
-      <div className="card">
-        <h2>Uebungen verwalten</h2>
-        <p>Hier kannst du bald Uebungen fuer deine Altersgruppe erstellen und bearbeiten.</p>
-      </div>
+      <UebungenManager />
     </DashboardLayout>
   );
 }

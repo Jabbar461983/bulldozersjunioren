@@ -2,8 +2,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { Altersgruppe, Team } from '../types/database';
 import { DashboardLayout } from '../components/DashboardLayout';
-
-const ALTERSGRUPPEN: Altersgruppe[] = ['U9', 'U12', 'U15', 'U18'];
+import { ALTERSGRUPPEN } from '../lib/constants';
+import { UebungenManager } from '../components/UebungenManager';
 
 export function AdminHome() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -102,9 +102,11 @@ export function AdminHome() {
         )}
       </div>
 
+      <UebungenManager />
+
       <div className="card">
         <h2>Nutzerverwaltung</h2>
-        <p>Hier erscheint bald die Verwaltung aller Nutzer, Teams und Uebungen.</p>
+        <p>Hier erscheint bald die Verwaltung aller Nutzer.</p>
       </div>
     </DashboardLayout>
   );

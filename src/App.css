@@ -51,12 +51,20 @@
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--color-border);
+  font-family: inherit;
+  resize: vertical;
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+.field input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .radio-group {
@@ -161,4 +169,80 @@
   color: var(--color-text);
   cursor: pointer;
   font-weight: 600;
+}
+
+.btn-danger {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-danger);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-danger:disabled,
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.filter-bar .field {
+  margin-bottom: 0;
+  min-width: 160px;
+}
+
+.uebungen-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.uebungen-table th {
+  text-align: left;
+  padding: 8px;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.uebungen-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  margin: 2px 4px 2px 0;
 }

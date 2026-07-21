@@ -41,6 +41,9 @@ export type Uebung = {
   titel: string;
   beschreibung: string | null;
   bild_url: string | null;
+  // Noch ungenutzt (Phase 2): Formular zeigt das Feld bereits ausgegraut an,
+  // damit ein spaeteres Video-Feature ohne Schemaaenderung auskommt.
+  video_url: string | null;
   kategorie: UebungKategorie;
   erstellt_von: string | null;
   altersgruppen: Altersgruppe[];
@@ -95,7 +98,8 @@ export type Database = {
       };
       uebungen: {
         Row: Uebung;
-        Insert: Partial<Uebung> & Pick<Uebung, 'titel' | 'kategorie' | 'altersgruppen'>;
+        Insert: Partial<Uebung> &
+          Pick<Uebung, 'titel' | 'kategorie' | 'altersgruppen' | 'erstellt_von'>;
         Update: Partial<Uebung>;
         Relationships: [];
       };
