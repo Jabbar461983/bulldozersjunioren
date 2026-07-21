@@ -1,5 +1,7 @@
 import { supabase } from './supabaseClient';
 
+const ONBOARDING_KEY = 'sh-tracker-push-onboarding-entschieden';
+
 export function istPushUnterstuetzt(): boolean {
   return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 }
@@ -7,6 +9,27 @@ export function istPushUnterstuetzt(): boolean {
 export function pushBerechtigungStatus(): NotificationPermission | 'nicht-unterstuetzt' {
   if (!istPushUnterstuetzt()) return 'nicht-unterstuetzt';
   return Notification.permission;
+}
+
+// Merkt sich pro Browser/Geraet (nicht pro Konto), ob die Einladung zum
+// Aktivieren von Push bereits beantwortet oder weggeklickt wurde, damit sie
+// nicht bei jedem Login erneut erscheint.
+export function pushOnboardingBereitsEntschieden(): boolean {
+  try {
+    return localStorage.getItem(ONBOARDING_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function pushOnboardingAlsEntschiedenMarkieren(): void {
+  try {
+    localStorage.setItem(ONBOARDING_KEY, 'true');
+  } catch {
+    // localStorage kann in seltenen Faellen blockiert sein (z. B. private
+    // Modus mit strikten Einstellungen) – dann wird die Einladung eben bei
+    // jedem Login erneut gezeigt, kein kritischer Fehler.
+  }
 }
 
 function urlBase64ZuUint8Array(base64: string): Uint8Array<ArrayBuffer> {

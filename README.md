@@ -8,8 +8,10 @@ Selbsteinschaetzung und Ranglisten zum Vergleichen mit dem Team.
 **Phase 3:** Junior-Ansicht mit Selbsteinschätzung und Verlauf.
 **Phase 4:** Gamification-Engine — Punkte, Level, tägliche/wöchentliche Streaks, 27 Badges und
 Web-Push-Benachrichtigungen.
-**Phase 6 (dieses Repo-Stadium):** Comic-artiges Design, Vereins-Branding (Logo + Farben) und
-Maskottchen "Pucky". Ranglisten (Phase 5) folgen in einer späteren Iteration.
+**Phase 6:** Comic-artiges Design, Vereins-Branding (Logo + Farben) und Maskottchen "Pucky".
+**Phase 7 (dieses Repo-Stadium):** Push-Notifications abgerundet — Berechtigungs-Flow beim
+ersten Login und In-App-Fallback-Benachrichtigung (Toast). Ranglisten (Phase 5) folgen in einer
+späteren Iteration.
 
 ## Tech-Stack
 
@@ -281,7 +283,8 @@ supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=ma
 Den Public Key zusätzlich als `VITE_VAPID_PUBLIC_KEY` in `.env.local` eintragen. Ohne diese Secrets
 funktioniert die App normal weiter — der "Benachrichtigungen aktivieren"-Button meldet dann nur,
 dass Push noch nicht konfiguriert ist, und ein fehlgeschlagener Push-Versand wird verschluckt statt
-den Selbsteinschätzungs-Flow zu stören.
+den Selbsteinschätzungs-Flow zu stören. Der Berechtigungs-Flow (erklärender Hinweistext beim ersten
+Login) und die In-App-Fallback-Benachrichtigung sind in Phase 7 abgerundet, siehe dort.
 
 ### Sicherheitshinweise (Phase 4)
 
@@ -345,6 +348,35 @@ einfache SVG-Illustration mit 3 Zuständen (keine Animation/Video):
 Bewusst nur in den Junior-Ansichten eingebunden (Begrüssung + Rückmeldung), da die Aufgabenstellung
 das Maskottchen explizit als Begleiter "den Junior durch die App" beschreibt; Trainer/Admin-Ansichten
 erhalten denselben Comic-Stil, aber ohne Maskottchen.
+
+## Push-Notifications: Berechtigungs-Flow & In-App-Fallback (Phase 7)
+
+Die Grundlage (Edge Function, `push_subscriptions`, Service-Worker-Handler, Auslösung bei
+Badge/Level-Events) entstand bereits in Phase 4. Phase 7 rundet zwei Dinge ab, die vorher fehlten:
+
+### Berechtigungs-Flow beim ersten Login
+
+`PushOnboarding` (`src/components/PushOnboarding.tsx`) erscheint als eigene Karte oben auf der
+Junior-Startseite (`/junior`), aber nur wenn Push vom Browser unterstützt wird, die
+Benachrichtigungs-Berechtigung noch nicht entschieden ist (`Notification.permission === 'default'`)
+und die Einladung nicht bereits einmal weggeklickt/beantwortet wurde (Flag in `localStorage`, siehe
+`pushOnboardingBereitsEntschieden()`/`pushOnboardingAlsEntschiedenMarkieren()` in `src/lib/push.ts`).
+Sie zeigt den geforderten Hinweistext ("Wir informieren dich, wenn du ein Abzeichen oder
+Level-Aufstieg erreichst") mit zwei Optionen — **Aktivieren** (löst den nativen Browser-Prompt aus)
+oder **Später** — und verschwindet danach dauerhaft für dieses Gerät, statt bei jedem Login erneut
+zu nerven. Wer sich gegen Push entscheidet, kann es jederzeit über den bestehenden Button auf der
+Profilseite (`/junior/profil`) nachholen.
+
+### In-App-Fallback-Benachrichtigung (Toast)
+
+Neu: `ToastProvider`/`useToast` (`src/contexts/ToastContext.tsx`), am App-Root eingehängt. Bei
+Level-Aufstieg oder neuem Badge zeigt `JuniorUebungDetail` jetzt zusätzlich zur grossen
+Maskottchen-Feier einen kurzen, selbst verschwindenden Toast oben auf dem Bildschirm — **unabhängig
+davon**, ob der Nutzer Push erlaubt, abgelehnt hat oder der Browser es gar nicht unterstützt. Das
+erfüllt die Vorgabe "Toast soll trotzdem erscheinen, sobald die App offen ist" ohne Sonderfall-Logik:
+der Toast läuft immer, das eigentliche Web Push (`sendeGamificationPush`) läuft parallel und
+zusätzlich für den Fall, dass die App gerade geschlossen/im Hintergrund ist. Es gibt weiterhin
+bewusst keine weiteren Trigger (keine Trainingserinnerungen, keine Ranglisten-Änderungen).
 
 ## Bekannte Grenzen dieser Phase
 

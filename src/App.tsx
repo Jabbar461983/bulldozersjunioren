@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleRoute } from './components/RoleRoute';
 import { LoginPage } from './pages/LoginPage';
@@ -16,83 +17,85 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<RoleRedirect />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+    <ToastProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<RoleRedirect />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          <Route
-            path="/junior"
-            element={
-              <ProtectedRoute>
-                <RoleRoute allowed={['junior']}>
-                  <JuniorHome />
-                </RoleRoute>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/junior"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute allowed={['junior']}>
+                    <JuniorHome />
+                  </RoleRoute>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/junior/uebungen/:id"
-            element={
-              <ProtectedRoute>
-                <RoleRoute allowed={['junior']}>
-                  <JuniorUebungDetail />
-                </RoleRoute>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/junior/uebungen/:id"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute allowed={['junior']}>
+                    <JuniorUebungDetail />
+                  </RoleRoute>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/junior/verlauf"
-            element={
-              <ProtectedRoute>
-                <RoleRoute allowed={['junior']}>
-                  <JuniorVerlauf />
-                </RoleRoute>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/junior/verlauf"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute allowed={['junior']}>
+                    <JuniorVerlauf />
+                  </RoleRoute>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/junior/profil"
-            element={
-              <ProtectedRoute>
-                <RoleRoute allowed={['junior']}>
-                  <JuniorProfil />
-                </RoleRoute>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/junior/profil"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute allowed={['junior']}>
+                    <JuniorProfil />
+                  </RoleRoute>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/trainer"
-            element={
-              <ProtectedRoute>
-                <RoleRoute allowed={['trainer', 'admin']}>
-                  <TrainerHome />
-                </RoleRoute>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/trainer"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute allowed={['trainer', 'admin']}>
+                    <TrainerHome />
+                  </RoleRoute>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <RoleRoute allowed={['admin']}>
-                  <AdminHome />
-                </RoleRoute>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute allowed={['admin']}>
+                    <AdminHome />
+                  </RoleRoute>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

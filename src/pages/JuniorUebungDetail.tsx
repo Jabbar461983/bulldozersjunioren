@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { SterneAuswahl } from '../components/SterneAuswahl';
 import { Maskottchen, type MaskottchenZustand } from '../components/Maskottchen';
@@ -28,6 +29,7 @@ interface Feedback {
 export function JuniorUebungDetail() {
   const { id } = useParams<{ id: string }>();
   const { profile, refreshProfile } = useAuth();
+  const { showToast } = useToast();
 
   const [uebung, setUebung] = useState<Uebung | null>(null);
   const [verlauf, setVerlauf] = useState<Selbsteinschaetzung[]>([]);
@@ -102,6 +104,13 @@ export function JuniorUebungDetail() {
       const feierMeldungen: string[] = [];
       if (data.level_aufstieg) {
         feierMeldungen.push(`Level-Aufstieg! Du bist jetzt Level ${data.neues_level}! 🎉`);
+        // In-App-Fallback (Phase 7): erscheint immer, sobald die App offen ist –
+        // unabhaengig davon, ob Web Push erlaubt/verfuegbar ist.
+        showToast({
+          icon: '🎉',
+          title: 'Level-Aufstieg!',
+          body: `Du bist jetzt Level ${data.neues_level}.`,
+        });
         void sendeGamificationPush({
           title: 'Level-Aufstieg! 🎉',
           body: `Du bist jetzt Level ${data.neues_level}.`,
@@ -109,6 +118,11 @@ export function JuniorUebungDetail() {
       }
       for (const badge of data.neue_badges) {
         feierMeldungen.push(`Neuer Badge: ${badge.icon ?? '🏅'} ${badge.name}!`);
+        showToast({
+          icon: badge.icon ?? '🏅',
+          title: 'Neuer Badge erreicht!',
+          body: badge.name,
+        });
         void sendeGamificationPush({
           title: 'Neuer Badge erreicht! 🏅',
           body: badge.name,

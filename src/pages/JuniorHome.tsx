@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { Maskottchen } from '../components/Maskottchen';
+import { PushOnboarding } from '../components/PushOnboarding';
 import { KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import { effektiverTagesStreak, levelFortschritt } from '../lib/gamification';
 import type { Uebung, UebungKategorie } from '../types/database';
@@ -60,6 +61,8 @@ export function JuniorHome() {
       <div className="card">
         <Maskottchen zustand="neutral" text={`Hallo ${profile?.name ?? ''}! ${begruessung}`} />
       </div>
+
+      <PushOnboarding />
 
       <div className="card">
         <h2>Level {fortschritt.level}</h2>
