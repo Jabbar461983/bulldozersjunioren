@@ -36,7 +36,7 @@ export function JuniorUebungDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [geschafft, setGeschafft] = useState<boolean | null>(null);
+  const [schritt, setSchritt] = useState<'wahl' | 'gefuehl'>('wahl');
   const [sterne, setSterne] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -70,33 +70,23 @@ export function JuniorUebungDetail() {
     void load();
   }, [load]);
 
-  async function handleSubmit() {
+  async function submitEinschaetzung(geschafftWert: boolean, sterneWert: number | null) {
     if (!id) return;
     setError(null);
     setFeedback(null);
     setFeier(null);
-
-    if (geschafft === null) {
-      setError('Bitte auswaehlen, ob du die Uebung geschafft hast.');
-      return;
-    }
-    if (sterne === null) {
-      setError('Bitte bewerte, wie es sich angefuehlt hat.');
-      return;
-    }
-
     setSubmitting(true);
     try {
       const { data, error } = await supabase.rpc('submit_selbsteinschaetzung', {
         p_uebung_id: id,
-        p_geschafft: geschafft,
-        p_gefuehl_sterne: sterne,
+        p_geschafft: geschafftWert,
+        p_gefuehl_sterne: sterneWert,
       });
       if (error) throw error;
 
       const punkte = data.einschaetzung.punkte_vergeben;
       setFeedback(
-        geschafft
+        geschafftWert
           ? { zustand: 'freudig', text: `${zufaelligerSpruch(FREUDIG_SPRUECHE)} +${punkte} Punkte` }
           : { zustand: 'aufmunternd', text: zufaelligerSpruch(AUFMUNTERN_SPRUECHE) }
       );
@@ -130,14 +120,28 @@ export function JuniorUebungDetail() {
       }
       if (feierMeldungen.length > 0) setFeier(feierMeldungen.join(' '));
 
-      setGeschafft(null);
       setSterne(null);
+      setSchritt('wahl');
       await Promise.all([refreshProfile(), load()]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Konnte nicht gespeichert werden.');
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function handleGeschafftKlick() {
+    setError(null);
+    setSchritt('gefuehl');
+  }
+
+  function handleNichtGeschafftKlick() {
+    void submitEinschaetzung(false, null);
+  }
+
+  function handleSterneWahl(wert: number) {
+    setSterne(wert);
+    void submitEinschaetzung(true, wert);
   }
 
   if (loading) {
@@ -190,38 +194,39 @@ export function JuniorUebungDetail() {
         {error && <div className="alert-error">{error}</div>}
         {feedback && <Maskottchen zustand={feedback.zustand} text={feedback.text} />}
 
-        <div className="field">
-          <label>Geschafft?</label>
-          <div className="radio-group">
-            <label>
-              <input
-                type="radio"
-                name="geschafft"
-                checked={geschafft === true}
-                onChange={() => setGeschafft(true)}
-              />
-              Ja
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="geschafft"
-                checked={geschafft === false}
-                onChange={() => setGeschafft(false)}
-              />
-              Nein
-            </label>
+        {schritt === 'wahl' && (
+          <div className="field">
+            <label>Hast du es geschafft?</label>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                className="btn-primary"
+                style={{ flex: 1, width: 'auto' }}
+                onClick={handleGeschafftKlick}
+                disabled={submitting}
+              >
+                Geschafft
+              </button>
+              <button
+                className="btn-secondary"
+                style={{ flex: 1 }}
+                onClick={handleNichtGeschafftKlick}
+                disabled={submitting}
+              >
+                {submitting ? 'Wird gespeichert …' : 'Nicht geschafft'}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="field">
-          <label>Wie hat es sich angefühlt?</label>
-          <SterneAuswahl value={sterne} onChange={setSterne} />
-        </div>
-
-        <button className="btn-primary" onClick={handleSubmit} disabled={submitting}>
-          {submitting ? 'Wird gespeichert …' : 'Speichern'}
-        </button>
+        {schritt === 'gefuehl' && (
+          <div className="field">
+            <label>Wie hat es sich angefühlt?</label>
+            <SterneAuswahl value={sterne} onChange={handleSterneWahl} readOnly={submitting} />
+            {submitting && (
+              <small style={{ color: 'var(--color-text-muted)' }}>Wird gespeichert …</small>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="card">
