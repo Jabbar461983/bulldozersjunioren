@@ -3,12 +3,23 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
+import { Maskottchen } from '../components/Maskottchen';
+import { KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import { effektiverTagesStreak, levelFortschritt } from '../lib/gamification';
 import type { Uebung, UebungKategorie } from '../types/database';
 
+const BEGRUESSUNGEN = [
+  'Bereit für dein Training?',
+  'Schön, dich zu sehen!',
+  'Auf geht’s, zeig was du kannst!',
+  'Lust auf eine Übung?',
+];
+
 export function JuniorHome() {
   const { profile } = useAuth();
+  const [begruessung] = useState(
+    () => BEGRUESSUNGEN[Math.floor(Math.random() * BEGRUESSUNGEN.length)]
+  );
 
   const [uebungen, setUebungen] = useState<Uebung[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +57,10 @@ export function JuniorHome() {
 
   return (
     <DashboardLayout>
+      <div className="card">
+        <Maskottchen zustand="neutral" text={`Hallo ${profile?.name ?? ''}! ${begruessung}`} />
+      </div>
+
       <div className="card">
         <h2>Level {fortschritt.level}</h2>
         <div className="progress-track">
@@ -101,20 +116,11 @@ export function JuniorHome() {
 
         {!loading &&
           uebungen.map((u) => (
-            <Link
-              key={u.id}
-              to={`/junior/uebungen/${u.id}`}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '12px 0',
-                borderBottom: '1px solid var(--color-border)',
-                textDecoration: 'none',
-                color: 'inherit',
-              }}
-            >
-              <span>{u.titel}</span>
+            <Link key={u.id} to={`/junior/uebungen/${u.id}`} className="touch-row">
+              <span style={{ fontWeight: 700 }}>
+                <span className="kategorie-icon">{KATEGORIE_ICONS[u.kategorie]}</span>
+                {u.titel}
+              </span>
               <span className="tag">{KATEGORIE_LABELS[u.kategorie]}</span>
             </Link>
           ))}

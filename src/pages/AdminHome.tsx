@@ -4,6 +4,7 @@ import type { Altersgruppe, Team } from '../types/database';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { ALTERSGRUPPEN } from '../lib/constants';
 import { UebungenManager } from '../components/UebungenManager';
+import { TeamBrandingForm } from '../components/TeamBrandingForm';
 
 export function AdminHome() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -13,6 +14,8 @@ export function AdminHome() {
   const [name, setName] = useState('');
   const [altersgruppe, setAltersgruppe] = useState<Altersgruppe>('U9');
   const [submitting, setSubmitting] = useState(false);
+
+  const [brandingTeam, setBrandingTeam] = useState<Team | null>(null);
 
   async function loadTeams() {
     setLoading(true);
@@ -78,6 +81,17 @@ export function AdminHome() {
         </form>
       </div>
 
+      {brandingTeam && (
+        <TeamBrandingForm
+          team={brandingTeam}
+          onCancel={() => setBrandingTeam(null)}
+          onSaved={(updated) => {
+            setTeams((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+            setBrandingTeam(null);
+          }}
+        />
+      )}
+
       <div className="card">
         <h2>Teams</h2>
         {loading && <p>Wird geladen …</p>}
@@ -90,12 +104,28 @@ export function AdminHome() {
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'center',
                   padding: '8px 0',
                   borderBottom: '1px solid var(--color-border)',
+                  gap: 10,
                 }}
               >
-                <span>{team.name}</span>
+                {team.logo_url ? (
+                  <img
+                    src={team.logo_url}
+                    alt=""
+                    style={{ width: 32, height: 32, objectFit: 'contain', borderRadius: 8 }}
+                  />
+                ) : (
+                  <span style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    🏒
+                  </span>
+                )}
+                <span style={{ flex: 1 }}>{team.name}</span>
                 <span style={{ color: 'var(--color-text-muted)' }}>{team.altersgruppe}</span>
+                <button className="btn-secondary" onClick={() => setBrandingTeam(team)}>
+                  Branding
+                </button>
               </li>
             ))}
           </ul>

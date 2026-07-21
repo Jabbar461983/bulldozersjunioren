@@ -8,14 +8,21 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { profile, signOut } = useAuth();
+  const { profile, team, signOut } = useAuth();
 
   return (
     <div className="app-shell" style={{ maxWidth: 720 }}>
       <div className="dashboard-header">
-        <div>
-          <h1 style={{ fontSize: '1.4rem' }}>Hallo, {profile?.name}</h1>
-          {profile && <span className="role-pill">{ROLE_LABELS[profile.rolle]}</span>}
+        <div className="dashboard-brand">
+          {team?.logo_url ? (
+            <img src={team.logo_url} alt={team.name} className="dashboard-logo" />
+          ) : (
+            <div className="brand-badge">🏒</div>
+          )}
+          <div>
+            <h1 style={{ fontSize: '1.4rem', margin: 0 }}>Hallo, {profile?.name}</h1>
+            {profile && <span className="role-pill">{ROLE_LABELS[profile.rolle]}</span>}
+          </div>
         </div>
         <button className="btn-secondary" onClick={() => void signOut()}>
           Abmelden

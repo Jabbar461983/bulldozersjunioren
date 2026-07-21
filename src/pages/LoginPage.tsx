@@ -32,7 +32,7 @@ export function LoginPage() {
     <div className="app-shell">
       <div className="auth-card">
         <div className="brand">
-          <div className="brand-badge">SH</div>
+          <div className="brand-badge">🏒</div>
           <div>
             <h1 style={{ fontSize: '1.25rem' }}>Streethockey Junioren-Tracker</h1>
           </div>

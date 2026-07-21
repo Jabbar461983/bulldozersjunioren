@@ -9,7 +9,8 @@ import {
 } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
-import type { Rolle, User } from '../types/database';
+import { wendeTeamThemeAn } from '../lib/theme';
+import type { Rolle, Team, User } from '../types/database';
 
 interface SignUpInput {
   email: string;
@@ -22,6 +23,7 @@ interface SignUpInput {
 interface AuthContextValue {
   session: Session | null;
   profile: User | null;
+  team: Team | null;
   loading: boolean;
   signUp: (input: SignUpInput) => Promise<{ needsEmailConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<void>;
@@ -34,6 +36,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<User | null>(null);
+  const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async (userId: string) => {
@@ -46,9 +49,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) {
       console.error('Profil konnte nicht geladen werden:', error.message);
       setProfile(null);
+      setTeam(null);
       return;
     }
     setProfile(data);
+
+    if (data?.team_id) {
+      const { data: teamData } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('id', data.team_id)
+        .maybeSingle();
+      setTeam(teamData);
+    } else {
+      setTeam(null);
+    }
   }, []);
 
   useEffect(() => {
@@ -70,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await loadProfile(nextSession.user.id);
         } else {
           setProfile(null);
+          setTeam(null);
         }
       }
     );
@@ -114,9 +130,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [session, loadProfile]);
 
+  // Vereinsfarben (Phase 6) als CSS-Design-Tokens auf die gesamte App anwenden,
+  // sobald sich das Team des eingeloggten Nutzers aendert (z. B. Login/Logout,
+  // Admin passt Farben an und ein Refresh laedt sie neu).
+  useEffect(() => {
+    wendeTeamThemeAn(team);
+  }, [team]);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ session, profile, loading, signUp, signIn, signOut, refreshProfile }),
-    [session, profile, loading, signUp, signIn, signOut, refreshProfile]
+    () => ({ session, profile, team, loading, signUp, signIn, signOut, refreshProfile }),
+    [session, profile, team, loading, signUp, signIn, signOut, refreshProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

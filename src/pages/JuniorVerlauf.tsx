@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { SterneAuswahl } from '../components/SterneAuswahl';
-import { KATEGORIE_LABELS } from '../lib/constants';
+import { KATEGORIE_ICONS, KATEGORIE_LABELS } from '../lib/constants';
 import type { Selbsteinschaetzung, Uebung } from '../types/database';
 
 export function JuniorVerlauf() {
@@ -66,20 +66,12 @@ export function JuniorVerlauf() {
           verlauf.map((v) => {
             const uebung = uebungenById.get(v.uebung_id);
             return (
-              <div
-                key={v.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 12,
-                  flexWrap: 'wrap',
-                  padding: '12px 0',
-                  borderBottom: '1px solid var(--color-border)',
-                }}
-              >
+              <div key={v.id} className="history-row">
                 <div>
-                  <div style={{ fontWeight: 600 }}>{uebung?.titel ?? 'Uebung geloescht'}</div>
+                  <div style={{ fontWeight: 700 }}>
+                    {uebung && <span className="kategorie-icon">{KATEGORIE_ICONS[uebung.kategorie]}</span>}
+                    {uebung?.titel ?? 'Uebung geloescht'}
+                  </div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
                     {new Date(v.datum).toLocaleDateString('de-CH')}
                     {uebung && ` · ${KATEGORIE_LABELS[uebung.kategorie]}`}

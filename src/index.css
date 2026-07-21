@@ -4,12 +4,18 @@
   --color-text: #14171f;
   --color-text-muted: #5b6172;
   --color-border: #dfe3ea;
+  /* Werden zur Laufzeit vom eingeloggten Team ueberschrieben (Phase 6, siehe
+     src/lib/theme.ts) — Werte hier sind der Standard ohne Team (z. B. Admin). */
   --color-primary: #0f172a;
   --color-accent: #38bdf8;
   --color-danger: #dc2626;
   --color-danger-bg: #fee2e2;
-  --radius: 12px;
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Verspielt-rundes "Sticker"-Design (Phase 6): grosszuegiger Radius statt
+     scharfer Ecken. */
+  --radius: 22px;
+  --radius-sm: 14px;
+  --heading: 'Baloo 2', 'Segoe UI', system-ui, sans-serif;
+  --sans: 'Nunito', 'Segoe UI', system-ui, sans-serif;
   color-scheme: light dark;
 }
 
@@ -48,6 +54,8 @@ h1,
 h2,
 h3 {
   margin: 0 0 8px;
+  font-family: var(--heading);
+  font-weight: 700;
 }
 
 p {
@@ -57,9 +65,14 @@ p {
 
 button,
 input,
-select {
+select,
+textarea {
   font-family: inherit;
   font-size: 1rem;
+}
+
+button {
+  touch-action: manipulation;
 }
 
 .centered-screen {

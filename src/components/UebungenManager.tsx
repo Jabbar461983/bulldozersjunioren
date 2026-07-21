@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
-import { ALTERSGRUPPEN, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
+import { ALTERSGRUPPEN, KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import type { Altersgruppe, Uebung, UebungKategorie } from '../types/database';
 import { UebungForm } from './UebungForm';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -161,7 +161,10 @@ export function UebungenManager() {
                 {uebungen.map((u) => (
                   <tr key={u.id}>
                     <td>{u.titel}</td>
-                    <td>{KATEGORIE_LABELS[u.kategorie]}</td>
+                    <td>
+                      <span className="kategorie-icon">{KATEGORIE_ICONS[u.kategorie]}</span>
+                      {KATEGORIE_LABELS[u.kategorie]}
+                    </td>
                     <td>
                       {u.altersgruppen.map((a) => (
                         <span key={a} className="tag">

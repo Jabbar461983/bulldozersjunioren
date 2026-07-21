@@ -6,8 +6,10 @@ Selbsteinschaetzung und Ranglisten zum Vergleichen mit dem Team.
 **Phase 1:** Projekt-Grundgerüst, Authentifizierung, Rollen- und Berechtigungssystem, Datenmodell.
 **Phase 2:** Übungsverwaltung für Trainer/Admin (Erstellen, Bearbeiten, Löschen, Filtern).
 **Phase 3:** Junior-Ansicht mit Selbsteinschätzung und Verlauf.
-**Phase 4 (dieses Repo-Stadium):** Gamification-Engine — Punkte, Level, tägliche/wöchentliche
-Streaks, 27 Badges und Web-Push-Benachrichtigungen. Ranglisten folgen in einer späteren Phase.
+**Phase 4:** Gamification-Engine — Punkte, Level, tägliche/wöchentliche Streaks, 27 Badges und
+Web-Push-Benachrichtigungen.
+**Phase 6 (dieses Repo-Stadium):** Comic-artiges Design, Vereins-Branding (Logo + Farben) und
+Maskottchen "Pucky". Ranglisten (Phase 5) folgen in einer späteren Iteration.
 
 ## Tech-Stack
 
@@ -50,10 +52,11 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0004) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0005) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
-   komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos).
+   komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
+   Storage-Bucket `team-logos` für den Vereinslogo-Upload.
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -137,7 +140,8 @@ Die Durchsetzung erfolgt auf zwei Ebenen:
 
 Siehe `supabase/migrations/0001_init.sql` für das vollständige Schema inkl. Kommentaren:
 
-- `teams` — Name, Altersgruppe (U9/U12/U15/U18), Platzhalter für Logo/Farben
+- `teams` — Name, Altersgruppe (U9/U12/U15/U18), `logo_url`/`farbe_primaer`/`farbe_sekundaer`
+  (seit Phase 6 im Admin-Bereich editierbar, siehe unten)
 - `users` — Profil, Rolle, Team-Zugehörigkeit, Punkte/Level/täglicher+wöchentlicher Streak
   (seit Phase 4 aktiv befüllt)
 - `uebungen` — Titel, Beschreibung, Kategorie, Ziel-Altersgruppen, Bild-URL, Ersteller.
@@ -290,6 +294,58 @@ den Selbsteinschätzungs-Flow zu stören.
 - Badge-Vergabe passiert ausschliesslich serverseitig in `pruefe_und_vergib_badges()` — es gibt
   keine Insert-Policy für `junior_badges`, ein Client kann sich also keine Badges selbst verleihen.
 
+## Design, Branding & Maskottchen (Phase 6)
+
+### Vereinslogo & Farben
+
+Jedes Team hat sein eigenes Branding (`teams.logo_url`/`farbe_primaer`/`farbe_sekundaer`, bereits
+seit Phase 1 im Schema vorgesehen). Admin verwaltet es direkt in der Teams-Liste der
+Admin-Startseite (Button **"Branding"** → `TeamBrandingForm`):
+
+- Logo-Upload (Bild-Datei) in den Storage-Bucket `team-logos` (öffentlich lesbar, Schreibzugriff
+  nur Admin — Migration 0005). Ein erneuter Upload ersetzt das bisherige Logo.
+- Primär-/Sekundärfarbe als Hex-Code-Eingabe **und** natives Farbwähler-Feld (`<input type="color">`),
+  synchron gehalten. Keine automatische Farbextraktion aus dem Logo nötig (bewusst nicht gefordert).
+
+Sobald ein Nutzer eingeloggt ist, lädt `AuthContext` das Team des Nutzers und wendet dessen Farben
+als CSS-Design-Tokens (`--color-primary`/`--color-accent`, siehe `src/lib/theme.ts`) global auf die
+App an — Buttons, Progress-Bar, Tags etc. übernehmen die Vereinsfarben automatisch, ohne dass
+einzelne Komponenten das Team kennen müssen. Nutzer ohne Team (i. d. R. Admin) sehen das
+Standard-Theme. Das Logo erscheint prominent im App-Header (`DashboardLayout`); auf dem
+Login-/Register-Screen (vor der Anmeldung, wenn das Team noch nicht bekannt ist) bleibt bewusst das
+generische App-Branding.
+
+### Comic-Stil
+
+Durchgängig überarbeitet für eine junge, mobile Zielgruppe (`src/index.css`/`src/App.css`):
+
+- Rundliche, freundliche Schriftarten (**Baloo 2** für Überschriften/Buttons, **Nunito** für
+  Fliesstext, via Google Fonts).
+- Grosszügiger Radius (Karten, Buttons, Inputs) statt scharfer Ecken, "Sticker"-Schatten
+  (versetzter Farbrand) auf Karten/Buttons, kleine Press-Animation auf Buttons.
+- Grosszügige Touch-Flächen (Inputs/Buttons/Listenzeilen ≥ 48 px Höhe) und reduzierte Textmengen,
+  passend für eine Zielgruppe ab ca. 6 Jahren.
+- Die 6 Trainingskategorien haben je ein Emoji-Icon (`KATEGORIE_ICONS` in `src/lib/constants.ts`,
+  dieselben wie bei den zugehörigen Badges), das überall dort erscheint, wo eine Kategorie
+  angezeigt wird (Übungsliste, Detailansicht, Verlauf, Übungsverwaltung).
+- Mobile-first: Alle Ansichten sind von Phase 1 an einspaltig für Smartphones ausgelegt; die
+  Layout-Breite wächst nur massvoll auf grösseren Bildschirmen.
+
+### Maskottchen "Pucky"
+
+Ein freundlicher, comic-artiger Hockey-Puck mit Gesicht (`src/components/Maskottchen.tsx`), als
+einfache SVG-Illustration mit 3 Zuständen (keine Animation/Video):
+
+- **neutral** – Begrüsst den Junior mit einem zufälligen Spruch auf der Startseite (`/junior`).
+- **freudig** – Nach einer Selbsteinschätzung mit "Geschafft = Ja" (motivierender Spruch + erzielte
+  Punkte); erscheint zusätzlich **gross und feiernd** (mit Sternchen/Funken) bei Level-Aufstieg
+  oder neuem Badge.
+- **aufmunternd** – Nach "Geschafft = Nein" (aufmunternder Spruch, kein Punkteabzug/Bewertung).
+
+Bewusst nur in den Junior-Ansichten eingebunden (Begrüssung + Rückmeldung), da die Aufgabenstellung
+das Maskottchen explizit als Begleiter "den Junior durch die App" beschreibt; Trainer/Admin-Ansichten
+erhalten denselben Comic-Stil, aber ohne Maskottchen.
+
 ## Bekannte Grenzen dieser Phase
 
 - Ranglisten (Team-/Altersgruppen-Vergleich) sind noch nicht umgesetzt.
@@ -298,3 +354,7 @@ den Selbsteinschätzungs-Flow zu stören.
 - E-Mail-Templates, Passwort-Reset-UI und Profilbearbeitung sind noch nicht umgesetzt.
 - Web Push erfordert ein deploytes Supabase-Projekt mit Edge Functions + VAPID-Secrets; lokal ohne
   diese Konfiguration bleibt der Rest der App uneingeschränkt nutzbar.
+- Automatische Farbextraktion aus dem Logo gibt es nicht (laut Aufgabenstellung nicht nötig) —
+  Primär-/Sekundärfarbe werden manuell eingegeben.
+- Login-/Register-Screen zeigen bewusst das generische App-Branding statt Team-Logo/-Farben, da vor
+  der Anmeldung noch kein Team bekannt ist (die App unterstützt mehrere Teams/Vereine gleichzeitig).
