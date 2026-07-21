@@ -1,6 +1,6 @@
-// Erzeugt einfache Platzhalter-App-Icons (PNG) fuer das Web App Manifest.
-// Kein externes Bild-Tool noetig: die Icons werden pixelweise gezeichnet und
-// per Node-zlib als PNG kodiert. In spaeteren Phasen (Team-Logos, Branding)
+// Erzeugt einfache Platzhalter-App-Icons (PNG) für das Web App Manifest.
+// Kein externes Bild-Tool nötig: die Icons werden pixelweise gezeichnet und
+// per Node-zlib als PNG kodiert. In späteren Phasen (Team-Logos, Branding)
 // werden diese durch echte Grafiken ersetzt.
 import { deflateSync } from 'node:zlib';
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -64,7 +64,7 @@ function encodePng(width, height, rgbaPixels) {
   ]);
 }
 
-// Vereinsfarben Streethockeyclub Bulldozers (Gruen/Gold).
+// Vereinsfarben Streethockeyclub Bulldozers (Grün/Gold).
 const PRIMARY = [14, 110, 69]; // #0e6e45
 const ACCENT = [176, 141, 42]; // #b08d2a
 
@@ -77,7 +77,7 @@ function buildIcon(size, { maskable = false } = {}) {
   const cx = size / 2;
   const cy = size / 2;
   // Bei maskable Icons muss das Motiv innerhalb der "safe zone" (~80% der
-  // Flaeche mittig) bleiben, da Betriebssysteme die Ecken abschneiden koennen.
+  // Fläche mittig) bleiben, da Betriebssysteme die Ecken abschneiden können.
   const puckRadius = size * (maskable ? 0.22 : 0.28);
   const ringRadius = size * (maskable ? 0.3 : 0.38);
 

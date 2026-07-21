@@ -1,7 +1,7 @@
 // Spiegelt bewusst nur die REIN DARSTELLERISCHEN Berechnungen aus
 // supabase/migrations/0004_gamification.sql (punkte_fuer_level/berechne_level).
 // Massgeblich (level_aktuell, Badge-Vergabe, Streaks) ist immer der Server –
-// diese Funktionen dienen nur der Anzeige (Fortschrittsbalken etc.), ohne fuer
+// diese Funktionen dienen nur der Anzeige (Fortschrittsbalken etc.), ohne für
 // jede Anzeige einen Round-Trip zur Datenbank zu brauchen.
 
 // Dreieckszahlen-Formel: punkte_fuer_level(n) = 50 * (n - 1) * n
@@ -54,9 +54,9 @@ function tageDifferenz(datumIso: string, referenzIso: string): number {
   return Math.round((referenz.getTime() - datum.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-// Der gespeicherte streak_counter wird nur bei einer neuen Einschaetzung
-// aktualisiert. Ohne neue Aktivitaet zeigen wir den Streak trotzdem korrekt
-// als abgebrochen an, sobald mehr als ein Tag ohne Aktivitaet vergangen ist.
+// Der gespeicherte streak_counter wird nur bei einer neuen Einschätzung
+// aktualisiert. Ohne neue Aktivität zeigen wir den Streak trotzdem korrekt
+// als abgebrochen an, sobald mehr als ein Tag ohne Aktivität vergangen ist.
 export function effektiverTagesStreak(
   streakCounter: number,
   letzteAktivitaet: string | null

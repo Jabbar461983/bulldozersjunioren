@@ -9,8 +9,8 @@ import {
 } from '../lib/push';
 
 // Berechtigungsabfrage "beim ersten Login" (Phase 7): erscheint einmalig pro
-// Browser als erklaerende Einladung, bevor der native Browser-Prompt
-// ausgeloest wird. Danach nie wieder (localStorage-Flag), egal ob
+// Browser als erklärende Einladung, bevor der native Browser-Prompt
+// ausgelöst wird. Danach nie wieder (localStorage-Flag), egal ob
 // aktiviert oder weggeklickt.
 export function PushOnboarding() {
   const { profile } = useAuth();

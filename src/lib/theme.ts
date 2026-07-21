@@ -2,7 +2,7 @@ import type { Team } from '../types/database';
 
 // Muss zu den Default-Werten in src/index.css (:root) passen. Entspricht den
 // Vereinsfarben des Streethockeyclub Bulldozers; kann pro Team in der
-// teams-Tabelle (farbe_primaer/-sekundaer) ueberschrieben werden.
+// teams-Tabelle (farbe_primaer/-sekundaer) überschrieben werden.
 const STANDARD_PRIMAER = '#0e6e45';
 const STANDARD_SEKUNDAER = '#b08d2a';
 

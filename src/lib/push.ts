@@ -11,7 +11,7 @@ export function pushBerechtigungStatus(): NotificationPermission | 'nicht-unters
   return Notification.permission;
 }
 
-// Merkt sich pro Browser/Geraet (nicht pro Konto), ob die Einladung zum
+// Merkt sich pro Browser/Gerät (nicht pro Konto), ob die Einladung zum
 // Aktivieren von Push bereits beantwortet oder weggeklickt wurde, damit sie
 // nicht bei jedem Login erneut erscheint.
 export function pushOnboardingBereitsEntschieden(): boolean {
@@ -26,7 +26,7 @@ export function pushOnboardingAlsEntschiedenMarkieren(): void {
   try {
     localStorage.setItem(ONBOARDING_KEY, 'true');
   } catch {
-    // localStorage kann in seltenen Faellen blockiert sein (z. B. private
+    // localStorage kann in seltenen Fällen blockiert sein (z. B. private
     // Modus mit strikten Einstellungen) – dann wird die Einladung eben bei
     // jedem Login erneut gezeigt, kein kritischer Fehler.
   }
@@ -45,7 +45,7 @@ function urlBase64ZuUint8Array(base64: string): Uint8Array<ArrayBuffer> {
 
 export async function pushAktivieren(userId: string): Promise<void> {
   if (!istPushUnterstuetzt()) {
-    throw new Error('Push-Benachrichtigungen werden von diesem Browser nicht unterstuetzt.');
+    throw new Error('Push-Benachrichtigungen werden von diesem Browser nicht unterstützt.');
   }
 
   const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
@@ -55,7 +55,7 @@ export async function pushAktivieren(userId: string): Promise<void> {
 
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') {
-    throw new Error('Berechtigung fuer Benachrichtigungen wurde nicht erteilt.');
+    throw new Error('Berechtigung für Benachrichtigungen wurde nicht erteilt.');
   }
 
   const registration = await navigator.serviceWorker.ready;
@@ -91,7 +91,7 @@ export async function sendeGamificationPush(payload: {
     await supabase.functions.invoke('send-push-notification', { body: payload });
   } catch (err) {
     // Push ist ein "nice to have" – ein Fehlschlag (z. B. Function nicht
-    // deployt) darf den eigentlichen Selbsteinschaetzungs-Flow nie stoeren.
+    // deployt) darf den eigentlichen Selbsteinschätzungs-Flow nie stören.
     console.warn('Push-Benachrichtigung konnte nicht gesendet werden:', err);
   }
 }

@@ -29,7 +29,7 @@ export function TeamBrandingForm({ team, onSaved, onCancel }: TeamBrandingFormPr
     setError(null);
 
     if (!HEX_MUSTER.test(farbePrimaer) || !HEX_MUSTER.test(farbeSekundaer)) {
-      setError('Bitte gueltige Hex-Farbcodes angeben (z. B. #0f172a).');
+      setError('Bitte gültige Hex-Farbcodes angeben (z. B. #0f172a).');
       return;
     }
 

@@ -54,13 +54,13 @@ export function JuniorVerlauf() {
 
   return (
     <DashboardLayout>
-      <Link to="/junior">← Zurueck zur Uebersicht</Link>
+      <Link to="/junior">← Zurück zur Übersicht</Link>
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Mein Verlauf</h2>
         {error && <div className="alert-error">{error}</div>}
         {loading && <p>Wird geladen …</p>}
-        {!loading && verlauf.length === 0 && <p>Noch keine Selbsteinschaetzungen erfasst.</p>}
+        {!loading && verlauf.length === 0 && <p>Noch keine Selbsteinschätzungen erfasst.</p>}
 
         {!loading &&
           verlauf.map((v) => {
@@ -70,7 +70,7 @@ export function JuniorVerlauf() {
                 <div>
                   <div style={{ fontWeight: 700 }}>
                     {uebung && <span className="kategorie-icon">{KATEGORIE_ICONS[uebung.kategorie]}</span>}
-                    {uebung?.titel ?? 'Uebung geloescht'}
+                    {uebung?.titel ?? 'Übung gelöscht'}
                   </div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
                     {new Date(v.datum).toLocaleDateString('de-CH')}

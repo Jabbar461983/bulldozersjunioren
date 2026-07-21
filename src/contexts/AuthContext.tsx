@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      // Ohne aktive Session muss die E-Mail-Adresse zuerst bestaetigt werden.
+      // Ohne aktive Session muss die E-Mail-Adresse zuerst bestätigt werden.
       return { needsEmailConfirmation: !data.session };
     },
     []
@@ -136,8 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session, loadProfile]);
 
   // Vereinsfarben (Phase 6) als CSS-Design-Tokens auf die gesamte App anwenden,
-  // sobald sich das Team des eingeloggten Nutzers aendert (z. B. Login/Logout,
-  // Admin passt Farben an und ein Refresh laedt sie neu).
+  // sobald sich das Team des eingeloggten Nutzers ändert (z. B. Login/Logout,
+  // Admin passt Farben an und ein Refresh lädt sie neu).
   useEffect(() => {
     wendeTeamThemeAn(team);
   }, [team]);

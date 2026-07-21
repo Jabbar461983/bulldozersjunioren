@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -28,6 +28,7 @@ interface Feedback {
 
 export function JuniorUebungDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { profile, refreshProfile } = useAuth();
   const { showToast } = useToast();
 
@@ -95,7 +96,7 @@ export function JuniorUebungDetail() {
       if (data.level_aufstieg) {
         feierMeldungen.push(`Level-Aufstieg! Du bist jetzt Level ${data.neues_level}! 🎉`);
         // In-App-Fallback (Phase 7): erscheint immer, sobald die App offen ist –
-        // unabhaengig davon, ob Web Push erlaubt/verfuegbar ist.
+        // unabhängig davon, ob Web Push erlaubt/verfügbar ist.
         showToast({
           icon: '🎉',
           title: 'Level-Aufstieg!',
@@ -123,6 +124,10 @@ export function JuniorUebungDetail() {
       setSterne(null);
       setSchritt('wahl');
       await Promise.all([refreshProfile(), load()]);
+
+      // Kurze Verzögerung, damit das Maskottchen-Feedback noch sichtbar ist,
+      // bevor die App zur Übersicht wechselt.
+      setTimeout(() => navigate('/junior'), 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Konnte nicht gespeichert werden.');
     } finally {
@@ -156,8 +161,8 @@ export function JuniorUebungDetail() {
     return (
       <DashboardLayout>
         <div className="card">
-          <p>Uebung nicht gefunden.</p>
-          <Link to="/junior">← Zurueck zur Uebersicht</Link>
+          <p>Übung nicht gefunden.</p>
+          <Link to="/junior">← Zurück zur Übersicht</Link>
         </div>
       </DashboardLayout>
     );
@@ -165,7 +170,7 @@ export function JuniorUebungDetail() {
 
   return (
     <DashboardLayout>
-      <Link to="/junior">← Zurueck zur Uebersicht</Link>
+      <Link to="/junior">← Zurück zur Übersicht</Link>
 
       <div className="card" style={{ marginTop: 16 }}>
         <span className="tag">
@@ -230,8 +235,8 @@ export function JuniorUebungDetail() {
       </div>
 
       <div className="card">
-        <h2>Mein Verlauf zu dieser Uebung</h2>
-        {verlauf.length === 0 && <p>Noch keine Einschaetzung fuer diese Uebung.</p>}
+        <h2>Mein Verlauf zu dieser Übung</h2>
+        {verlauf.length === 0 && <p>Noch keine Einschätzung für diese Übung.</p>}
         {verlauf.map((v) => (
           <div key={v.id} className="history-row">
             <span>{new Date(v.datum).toLocaleDateString('de-CH')}</span>

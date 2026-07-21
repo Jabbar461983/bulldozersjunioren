@@ -22,9 +22,9 @@ export async function uploadUebungBild(file: File, userId: string): Promise<stri
   return data.publicUrl;
 }
 
-// Fester Dateiname pro Team (statt zufaelliger UUID): ein erneuter Upload
-// ersetzt das bisherige Logo, statt verwaiste Dateien anzuhaeufen. Der
-// Cache-Buster-Query-Parameter sorgt dafuer, dass Browser/Service-Worker das
+// Fester Dateiname pro Team (statt zufälliger UUID): ein erneuter Upload
+// ersetzt das bisherige Logo, statt verwaiste Dateien anzuhäufen. Der
+// Cache-Buster-Query-Parameter sorgt dafür, dass Browser/Service-Worker das
 // neue Bild sofort laden statt die alte, cachte Version weiter anzuzeigen.
 export async function uploadTeamLogo(file: File, teamId: string): Promise<string> {
   if (file.size > MAX_BILD_BYTES) {

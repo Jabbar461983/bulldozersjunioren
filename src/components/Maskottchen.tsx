@@ -9,7 +9,7 @@ interface MaskottchenProps {
 // "Pucky" – das Maskottchen der Bulldozers Challenge: ein
 // freundlicher, comic-artiger Hockey-Puck mit Gesicht. Bewusst in einer
 // eigenen, immer gleichen Farbe gehalten (statt Team-Theme-Farben), damit er
-// als wiedererkennbarer Charakter unabhaengig vom jeweiligen Vereins-Branding
+// als wiedererkennbarer Charakter unabhängig vom jeweiligen Vereins-Branding
 // funktioniert.
 export function Maskottchen({ zustand = 'neutral', text, size = 96 }: MaskottchenProps) {
   return (
@@ -43,10 +43,10 @@ function PuckyGesicht({ zustand, size }: { zustand: MaskottchenZustand; size: nu
         </g>
       )}
 
-      {/* Schlaeger im Hintergrund, als kleiner Streethockey-Bezug */}
+      {/* Schläger im Hintergrund, als kleiner Streethockey-Bezug */}
       <line x1="150" y1="150" x2="180" y2="60" stroke="#92400e" strokeWidth="6" strokeLinecap="round" />
 
-      {/* Koerper (Puck) */}
+      {/* Körper (Puck) */}
       <ellipse cx="100" cy="112" rx="72" ry="62" fill="#fbbf24" stroke="#b45309" strokeWidth="5" />
 
       {/* Wangen */}

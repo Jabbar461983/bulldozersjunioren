@@ -48,11 +48,11 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
       return;
     }
     if (!kategorie) {
-      setError('Bitte eine Kategorie auswaehlen.');
+      setError('Bitte eine Kategorie auswählen.');
       return;
     }
     if (altersgruppen.length === 0) {
-      setError('Bitte mindestens eine Altersgruppe auswaehlen.');
+      setError('Bitte mindestens eine Altersgruppe auswählen.');
       return;
     }
     if (!profile) {
@@ -90,7 +90,7 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
 
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Uebung konnte nicht gespeichert werden.');
+      setError(err instanceof Error ? err.message : 'Übung konnte nicht gespeichert werden.');
     } finally {
       setSubmitting(false);
     }
@@ -98,7 +98,7 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
 
   return (
     <div className="card">
-      <h2>{initial ? 'Uebung bearbeiten' : 'Neue Uebung erstellen'}</h2>
+      <h2>{initial ? 'Übung bearbeiten' : 'Neue Übung erstellen'}</h2>
       {error && <div className="alert-error">{error}</div>}
 
       <form onSubmit={handleSubmit}>
@@ -133,7 +133,7 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
             onChange={(e) => setKategorie(e.target.value as UebungKategorie)}
           >
             <option value="" disabled>
-              Bitte waehlen …
+              Bitte wählen …
             </option>
             {KATEGORIEN.map((k) => (
               <option key={k} value={k}>
@@ -206,7 +206,7 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn-primary" type="submit" disabled={submitting}>
-            {submitting ? 'Wird gespeichert …' : initial ? 'Speichern' : 'Uebung erstellen'}
+            {submitting ? 'Wird gespeichert …' : initial ? 'Speichern' : 'Übung erstellen'}
           </button>
           <button
             className="btn-secondary"

@@ -17,10 +17,10 @@ const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
 const ANZEIGEDAUER_MS = 6000;
 
-// In-App-Fallback-Benachrichtigung (Phase 7): laeuft unabhaengig davon, ob
-// Web Push erlaubt/verfuegbar ist, damit Badge-/Level-Events immer sichtbar
+// In-App-Fallback-Benachrichtigung (Phase 7): läuft unabhängig davon, ob
+// Web Push erlaubt/verfügbar ist, damit Badge-/Level-Events immer sichtbar
 // werden, solange die App gerade offen ist – auch wenn der Nutzer Push
-// abgelehnt hat oder der Browser es nicht unterstuetzt.
+// abgelehnt hat oder der Browser es nicht unterstützt.
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const nextId = useRef(0);

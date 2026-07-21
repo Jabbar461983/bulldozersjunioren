@@ -62,7 +62,7 @@ export function JuniorProfil() {
 
   return (
     <DashboardLayout>
-      <Link to="/junior">← Zurueck zur Uebersicht</Link>
+      <Link to="/junior">← Zurück zur Übersicht</Link>
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Level {fortschritt.level}</h2>

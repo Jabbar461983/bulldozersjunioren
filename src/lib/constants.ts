@@ -21,7 +21,7 @@ export const KATEGORIEN: UebungKategorie[] = [
 ];
 
 // Gleiche Emoji wie bei den entsprechenden Badges (Phase 4), damit Kategorie
-// und Badge visuell sofort zusammengehoerig wirken (Phase 6: verspielte
+// und Badge visuell sofort zusammengehörig wirken (Phase 6: verspielte
 // Illustrationen statt reinem Text).
 export const KATEGORIE_ICONS: Record<UebungKategorie, string> = {
   technik: '🎯',

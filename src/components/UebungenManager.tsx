@@ -79,7 +79,7 @@ export function UebungenManager() {
       setDeleteTarget(null);
       await loadUebungen();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Uebung konnte nicht geloescht werden.');
+      setError(err instanceof Error ? err.message : 'Übung konnte nicht gelöscht werden.');
     } finally {
       setDeleting(false);
     }
@@ -100,10 +100,10 @@ export function UebungenManager() {
             marginBottom: 16,
           }}
         >
-          <h2 style={{ margin: 0 }}>Uebungen</h2>
+          <h2 style={{ margin: 0 }}>Übungen</h2>
           {!formOpen && (
             <button className="btn-primary" style={{ width: 'auto' }} onClick={openCreateForm}>
-              + Neue Uebung
+              + Neue Übung
             </button>
           )}
         </div>
@@ -144,7 +144,7 @@ export function UebungenManager() {
         </div>
 
         {loading && <p>Wird geladen …</p>}
-        {!loading && uebungen.length === 0 && <p>Keine Uebungen gefunden.</p>}
+        {!loading && uebungen.length === 0 && <p>Keine Übungen gefunden.</p>}
 
         {!loading && uebungen.length > 0 && (
           <div style={{ overflowX: 'auto' }}>
@@ -179,7 +179,7 @@ export function UebungenManager() {
                             Bearbeiten
                           </button>
                           <button className="btn-danger" onClick={() => setDeleteTarget(u)}>
-                            Loeschen
+                            Löschen
                           </button>
                         </div>
                       ) : (
@@ -196,8 +196,8 @@ export function UebungenManager() {
 
       <ConfirmDialog
         open={deleteTarget !== null}
-        title="Uebung loeschen?"
-        message={`Moechtest du "${deleteTarget?.titel}" wirklich unwiderruflich loeschen?`}
+        title="Übung löschen?"
+        message={`Möchtest du "${deleteTarget?.titel}" wirklich unwiderruflich löschen?`}
         busy={deleting}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteTarget(null)}

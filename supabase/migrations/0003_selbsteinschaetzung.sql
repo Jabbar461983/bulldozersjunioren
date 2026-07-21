@@ -11,8 +11,8 @@ drop policy if exists selbsteinschaetzungen_insert_own on public.selbsteinschaet
 drop policy if exists selbsteinschaetzungen_update_own_or_admin on public.selbsteinschaetzungen;
 
 -- Admin darf zur Korrektur weiterhin direkt schreiben; normale Nutzer nur
--- über die RPC-Funktion (siehe unten), die SECURITY DEFINER laeuft und RLS
--- fuer ihre eigenen Schreibzugriffe umgeht.
+-- über die RPC-Funktion (siehe unten), die SECURITY DEFINER läuft und RLS
+-- für ihre eigenen Schreibzugriffe umgeht.
 create policy selbsteinschaetzungen_admin_write on public.selbsteinschaetzungen
   for all
   to authenticated
@@ -22,12 +22,12 @@ create policy selbsteinschaetzungen_admin_write on public.selbsteinschaetzungen
 -- ---------------------------------------------------------------------------
 -- Schutz von punkte_total/level_aktuell/streak_* vor direkten Client-Updates.
 --
--- Diese Felder duerfen nur von Admin oder von einer als "vertrauenswuerdig"
--- markierten Server-Funktion (siehe submit_selbsteinschaetzung) veraendert
+-- Diese Felder dürfen nur von Admin oder von einer als "vertrauenswürdig"
+-- markierten Server-Funktion (siehe submit_selbsteinschaetzung) verändert
 -- werden. Die Funktion setzt dazu ein transaktionslokales Flag
--- (app.allow_points_update), das der Trigger prueft. Ohne dieses Flag wuerde
+-- (app.allow_points_update), das der Trigger prüft. Ohne dieses Flag würde
 -- z. B. ein Junior sonst per direktem "update users set punkte_total = ..."
--- sich beliebig Punkte gutschreiben koennen.
+-- sich beliebig Punkte gutschreiben können.
 -- ---------------------------------------------------------------------------
 
 create or replace function public.prevent_privileged_field_change()
@@ -39,7 +39,7 @@ as $$
 begin
   if (new.rolle <> old.rolle or new.team_id is distinct from old.team_id)
      and public.current_user_role() <> 'admin' then
-    raise exception 'Nur Admins duerfen Rolle oder Team aendern.';
+    raise exception 'Nur Admins dürfen Rolle oder Team ändern.';
   end if;
 
   if (
@@ -50,7 +50,7 @@ begin
      )
      and public.current_user_role() <> 'admin'
      and coalesce(current_setting('app.allow_points_update', true), 'false') <> 'true' then
-    raise exception 'Punkte, Level und Streak duerfen nicht direkt geaendert werden.';
+    raise exception 'Punkte, Level und Streak dürfen nicht direkt geändert werden.';
   end if;
 
   return new;
@@ -58,14 +58,14 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- submit_selbsteinschaetzung: einziger Weg fuer Junioren, eine Selbstein-
--- schaetzung zu erfassen. Bindet junior_id fest an auth.uid() (kann also nicht
+-- submit_selbsteinschaetzung: einziger Weg für Junioren, eine Selbstein-
+-- schätzung zu erfassen. Bindet junior_id fest an auth.uid() (kann also nicht
 -- im Namen eines anderen Nutzers aufgerufen werden) und berechnet den
 -- Punktewert serverseitig anhand von "geschafft" – der Client kann keinen
 -- eigenen Punktewert mitschicken.
 --
--- Punktewert: fixer Platzhalter (20 Punkte pro erfolgreich eingeschaetzter
--- Uebung). Die tatsaechliche Formel (Level-Berechnung etc.) folgt in Phase 4
+-- Punktewert: fixer Platzhalter (20 Punkte pro erfolgreich eingeschätzter
+-- Übung). Die tatsächliche Formel (Level-Berechnung etc.) folgt in Phase 4
 -- und darf diese Funktion bei Bedarf anpassen.
 -- ---------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ begin
   end if;
 
   if not exists (select 1 from public.uebungen where id = p_uebung_id) then
-    raise exception 'Uebung nicht gefunden.';
+    raise exception 'Übung nicht gefunden.';
   end if;
 
   if p_geschafft then

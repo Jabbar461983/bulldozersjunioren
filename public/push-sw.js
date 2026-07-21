@@ -1,10 +1,10 @@
 // Wird per workbox.importScripts in den generierten Service Worker (sw.js)
-// eingebunden (siehe vite.config.ts) und ergaenzt die Anzeige eingehender
-// Web-Push-Nachrichten. Ausgeloest ausschliesslich fuer: neuer Badge, Level-
+// eingebunden (siehe vite.config.ts) und ergänzt die Anzeige eingehender
+// Web-Push-Nachrichten. Ausgelöst ausschliesslich für: neuer Badge, Level-
 // Aufstieg (siehe supabase/functions/send-push-notification).
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'Streethockey Junioren-Tracker', body: '' };
+  let data = { title: 'Bulldozers Challenge', body: '' };
   if (event.data) {
     try {
       data = event.data.json();

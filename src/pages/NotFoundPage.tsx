@@ -6,7 +6,7 @@ export function NotFoundPage() {
       <div>
         <h1>404</h1>
         <p>Diese Seite gibt es nicht.</p>
-        <Link to="/">Zurueck zur Startseite</Link>
+        <Link to="/">Zurück zur Startseite</Link>
       </div>
     </div>
   );

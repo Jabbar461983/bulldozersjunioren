@@ -9,7 +9,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        // Basis-Caching: App-Shell (JS/CSS/HTML/Icons) offline verfuegbar.
+        // Basis-Caching: App-Shell (JS/CSS/HTML/Icons) offline verfügbar.
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
         // Bindet die Push-/Notification-Click-Handler (Phase 4) in den
         // generierten Service Worker ein.
@@ -19,9 +19,9 @@ export default defineConfig({
         name: 'Bulldozers Challenge',
         short_name: 'Bulldozers',
         description:
-          'Uebungen fuer die Bulldozers Junioren zum Zuhause-Trainieren und Vergleichen.',
-        // Vereinsfarben Streethockeyclub Bulldozers (Gruen/Gold). Pro Team kann dies
-        // zur Laufzeit ueberschrieben werden (siehe src/lib/theme.ts).
+          'Übungen für die Bulldozers Junioren zum Zuhause-Trainieren und Vergleichen.',
+        // Vereinsfarben Streethockeyclub Bulldozers (Grün/Gold). Pro Team kann dies
+        // zur Laufzeit überschrieben werden (siehe src/lib/theme.ts).
         theme_color: '#0e6e45',
         background_color: '#ffffff',
         display: 'standalone',

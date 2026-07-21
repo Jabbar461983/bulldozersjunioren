@@ -12,7 +12,7 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Loeschen',
+  confirmLabel = 'Löschen',
   busy = false,
   onConfirm,
   onCancel,
@@ -35,7 +35,7 @@ export function ConfirmDialog({
             Abbrechen
           </button>
           <button className="btn-danger" onClick={onConfirm} disabled={busy}>
-            {busy ? 'Wird geloescht …' : confirmLabel}
+            {busy ? 'Wird gelöscht …' : confirmLabel}
           </button>
         </div>
       </div>

@@ -10,12 +10,12 @@
 alter table public.uebungen add column video_url text;
 
 -- ---------------------------------------------------------------------------
--- Storage-Bucket für Uebungsbilder (Alternative zur externen Bild-URL).
--- Der Bucket ist oeffentlich lesbar, damit gespeicherte Bild-URLs direkt ohne
--- Signierung angezeigt werden koennen. Schreibrechte sind auf Trainer/Admin
--- beschraenkt, jeweils nur innerhalb des eigenen Unterordners
+-- Storage-Bucket für Übungsbilder (Alternative zur externen Bild-URL).
+-- Der Bucket ist öffentlich lesbar, damit gespeicherte Bild-URLs direkt ohne
+-- Signierung angezeigt werden können. Schreibrechte sind auf Trainer/Admin
+-- beschränkt, jeweils nur innerhalb des eigenen Unterordners
 -- (Pfad-Konvention: <user_id>/<dateiname>), damit sich Nutzer nicht
--- gegenseitig Dateien ueberschreiben oder loeschen koennen.
+-- gegenseitig Dateien überschreiben oder löschen können.
 -- ---------------------------------------------------------------------------
 
 insert into storage.buckets (id, name, public)

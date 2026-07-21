@@ -58,7 +58,7 @@ export function RegisterPage() {
     setError(null);
 
     if (needsTeam && !teamId) {
-      setError('Bitte waehle ein Team aus.');
+      setError('Bitte wähle ein Team aus.');
       return;
     }
 
@@ -74,7 +74,7 @@ export function RegisterPage() {
       });
 
       if (needsEmailConfirmation) {
-        setInfo('Fast geschafft! Bitte bestaetige deine E-Mail-Adresse ueber den Link, den wir dir geschickt haben, und melde dich danach an.');
+        setInfo('Fast geschafft! Bitte bestätige deine E-Mail-Adresse über den Link, den wir dir geschickt haben, und melde dich danach an.');
       } else {
         navigate('/', { replace: true });
       }
@@ -162,8 +162,8 @@ export function RegisterPage() {
               </div>
               {adminAlreadyExists && (
                 <small style={{ color: 'var(--color-text-muted)' }}>
-                  Es existiert bereits ein Admin-Konto. Weitere Admins koennen nur von einem
-                  bestehenden Admin befoerdert werden.
+                  Es existiert bereits ein Admin-Konto. Weitere Admins können nur von einem
+                  bestehenden Admin befördert werden.
                 </small>
               )}
             </div>
@@ -179,7 +179,7 @@ export function RegisterPage() {
                   disabled={loadingOptions}
                 >
                   <option value="" disabled>
-                    {teams.length === 0 ? 'Noch keine Teams vorhanden' : 'Team waehlen …'}
+                    {teams.length === 0 ? 'Noch keine Teams vorhanden' : 'Team wählen …'}
                   </option>
                   {teams.map((team) => (
                     <option key={team.id} value={team.id}>

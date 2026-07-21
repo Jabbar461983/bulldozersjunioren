@@ -1,15 +1,15 @@
 // Supabase Edge Function (Deno): sendet eine Web-Push-Benachrichtigung an
-// alle registrierten Geraete des AUFRUFENDEN Nutzers.
+// alle registrierten Geräte des AUFRUFENDEN Nutzers.
 //
-// Wird ausschliesslich fuer die beiden in Phase 4 spezifizierten Ereignisse
+// Wird ausschliesslich für die beiden in Phase 4 spezifizierten Ereignisse
 // aufgerufen: neuer Badge erreicht, Level-Aufstieg. Keine weiteren Trigger
 // (z. B. Trainingserinnerungen) in dieser Phase.
 //
-// Benoetigte Secrets (per `supabase secrets set` zu setzen):
+// Benötigte Secrets (per `supabase secrets set` zu setzen):
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (z. B. "mailto:you@example.com")
 // SUPABASE_URL und SUPABASE_ANON_KEY sind in der Edge-Runtime bereits vorhanden.
 //
-// Generieren der VAPID-Schluessel lokal: `npx web-push generate-vapid-keys`
+// Generieren der VAPID-Schlüssel lokal: `npx web-push generate-vapid-keys`
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3';
@@ -45,13 +45,13 @@ Deno.serve(async (req: Request) => {
   try {
     payload = await req.json();
   } catch {
-    return new Response('Ungueltiger Request-Body.', { status: 400 });
+    return new Response('Ungültiger Request-Body.', { status: 400 });
   }
   if (!payload.title || !payload.body) {
     return new Response('title und body sind erforderlich.', { status: 400 });
   }
 
-  // Client mit dem JWT des Aufrufers: RLS beschraenkt die Abfrage automatisch
+  // Client mit dem JWT des Aufrufers: RLS beschränkt die Abfrage automatisch
   // auf dessen eigene push_subscriptions-Zeilen (siehe Migration 0004).
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -80,8 +80,8 @@ Deno.serve(async (req: Request) => {
           notificationPayload
         );
       } catch (err) {
-        // 404/410 = Abonnement ist nicht mehr gueltig (z. B. Browser-Daten
-        // geloescht) -> aufraeumen, damit kuenftige Sends nicht erneut fehlschlagen.
+        // 404/410 = Abonnement ist nicht mehr gültig (z. B. Browser-Daten
+        // gelöscht) -> aufräumen, damit künftige Sends nicht erneut fehlschlagen.
         const status = (err as { statusCode?: number }).statusCode;
         if (status === 404 || status === 410) {
           await supabase.from('push_subscriptions').delete().eq('id', sub.id);

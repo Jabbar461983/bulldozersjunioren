@@ -1,11 +1,11 @@
 -- Vorname/Nachname getrennt erfassen + Rangliste
 --
 -- 1) users.name wird durch zwei getrennte Felder ersetzt (vorname, nachname).
---    Grund: Die Rangliste soll aus Datenschutzgruenden nur "Vorname + erster
---    Buchstabe des Nachnamens" anzeigen – das laesst sich nur zuverlaessig
+--    Grund: Die Rangliste soll aus Datenschutzgründen nur "Vorname + erster
+--    Buchstabe des Nachnamens" anzeigen – das lässt sich nur zuverlässig
 --    umsetzen, wenn Vor- und Nachname von Anfang an getrennt gespeichert
---    werden (statt sie nachtraeglich aus einem Freitext-Namensfeld zu raten).
--- 2) Eine neue View public.rangliste liefert genau die dafuer noetigen,
+--    werden (statt sie nachträglich aus einem Freitext-Namensfeld zu raten).
+-- 2) Eine neue View public.rangliste liefert genau die dafür nötigen,
 --    unkritischen Felder (kein Zugriff auf E-Mail, Streaks etc.).
 
 -- ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ alter table public.users
   add column vorname text,
   add column nachname text;
 
--- Bestehende Nutzer bestmoeglich aus dem alten Freitext-Namen aufteilen
+-- Bestehende Nutzer bestmöglich aus dem alten Freitext-Namen aufteilen
 -- (erstes Wort = Vorname, Rest = Nachname).
 update public.users
 set vorname = coalesce(nullif(split_part(name, ' ', 1), ''), name, ''),
@@ -64,13 +64,13 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- 2) Rangliste: eine View statt direktem Zugriff auf public.users, damit
--- Junioren einander sehen koennen (fuer die Rangliste), ohne dass dabei
--- E-Mail-Adressen, Streaks o. Ae. anderer Nutzer offengelegt werden. Die View
--- laeuft mit den Rechten ihres Besitzers (Standardverhalten, kein
+-- Junioren einander sehen können (für die Rangliste), ohne dass dabei
+-- E-Mail-Adressen, Streaks o. Ä. anderer Nutzer offengelegt werden. Die View
+-- läuft mit den Rechten ihres Besitzers (Standardverhalten, kein
 -- security_invoker gesetzt) und umgeht damit bewusst die RLS-Policies von
 -- public.users – das ist hier gewollt, da die View selbst nur unkritische
 -- Spalten exponiert und der Nachname serverseitig auf den ersten Buchstaben
--- gekuerzt wird (der volle Nachname verlaesst die Datenbank nie).
+-- gekürzt wird (der volle Nachname verlässt die Datenbank nie).
 -- ---------------------------------------------------------------------------
 
 create or replace view public.rangliste as

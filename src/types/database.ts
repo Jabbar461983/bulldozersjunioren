@@ -1,4 +1,4 @@
-// Zentrale Typdefinitionen fuer das Datenmodell aus Phase 1.
+// Zentrale Typdefinitionen für das Datenmodell aus Phase 1.
 // Spiegelt die Tabellen aus supabase/migrations/0001_init.sql wider.
 
 export type Rolle = 'junior' | 'trainer' | 'admin';
@@ -34,7 +34,7 @@ export type User = {
   level_aktuell: number;
   streak_counter: number;
   streak_letzte_aktivitaet: string | null;
-  // Woechentlicher Streak (Phase 4): streak_letzte_woche speichert den Montag
+  // Wöchentlicher Streak (Phase 4): streak_letzte_woche speichert den Montag
   // der zuletzt aktiven ISO-Woche.
   streak_wochen: number;
   streak_letzte_woche: string | null;
@@ -47,7 +47,7 @@ export type Uebung = {
   beschreibung: string | null;
   bild_url: string | null;
   // Noch ungenutzt (Phase 2): Formular zeigt das Feld bereits ausgegraut an,
-  // damit ein spaeteres Video-Feature ohne Schemaaenderung auskommt.
+  // damit ein späteres Video-Feature ohne Schemaänderung auskommt.
   video_url: string | null;
   kategorie: UebungKategorie;
   erstellt_von: string | null;
@@ -97,9 +97,9 @@ export type PushSubscriptionRow = {
   created_at: string;
 };
 
-// Rueckgabetyp von submit_selbsteinschaetzung(): neben der gespeicherten
-// Einschaetzung auch, ob dadurch ein Level-Aufstieg ausgeloest wurde und
-// welche Badges neu vergeben wurden (fuer die Push-Benachrichtigung).
+// Rückgabetyp von submit_selbsteinschaetzung(): neben der gespeicherten
+// Einschätzung auch, ob dadurch ein Level-Aufstieg ausgelöst wurde und
+// welche Badges neu vergeben wurden (für die Push-Benachrichtigung).
 export type SelbsteinschaetzungErgebnis = {
   einschaetzung: Selbsteinschaetzung;
   level_aufstieg: boolean;
@@ -107,8 +107,8 @@ export type SelbsteinschaetzungErgebnis = {
   neue_badges: Badge[];
 };
 
-// Zeile aus der public.rangliste-View: bewusst nur unkritische Felder,
-// Nachname ist bereits serverseitig auf den ersten Buchstaben gekuerzt.
+// Zeile aus der public.rangliste()-Funktion: bewusst nur unkritische Felder,
+// Nachname ist bereits serverseitig auf den ersten Buchstaben gekürzt.
 export type RanglisteEintrag = {
   id: string;
   vorname: string;
@@ -119,7 +119,7 @@ export type RanglisteEintrag = {
   team_name: string | null;
 };
 
-// Minimales Database-Schema fuer den typisierten Supabase-Client, im gleichen
+// Minimales Database-Schema für den typisierten Supabase-Client, im gleichen
 // Format wie von `supabase gen types typescript` generiert (Tables/Views/
 // Functions je Tabelle mit Row/Insert/Update/Relationships).
 export type Database = {
@@ -178,6 +178,7 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
+
     Functions: {
       admin_exists: {
         Args: Record<PropertyKey, never>;

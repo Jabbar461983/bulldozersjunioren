@@ -32,7 +32,7 @@ export function JuniorHome() {
     setLoading(true);
     setError(null);
 
-    // RLS beschraenkt das Ergebnis bereits automatisch auf die Altersgruppe
+    // RLS beschränkt das Ergebnis bereits automatisch auf die Altersgruppe
     // des eigenen Teams (siehe uebungen_select_own_altersgruppe-Policy).
     let query = supabase
       .from('uebungen')
@@ -92,7 +92,7 @@ export function JuniorHome() {
             marginBottom: 16,
           }}
         >
-          <h2 style={{ margin: 0 }}>Uebungen</h2>
+          <h2 style={{ margin: 0 }}>Übungen</h2>
         </div>
 
         {error && <div className="alert-error">{error}</div>}
@@ -117,7 +117,7 @@ export function JuniorHome() {
 
         {loading && <p>Wird geladen …</p>}
         {!loading && uebungen.length === 0 && (
-          <p>Keine Uebungen fuer deine Altersgruppe gefunden.</p>
+          <p>Keine Übungen für deine Altersgruppe gefunden.</p>
         )}
 
         {!loading &&

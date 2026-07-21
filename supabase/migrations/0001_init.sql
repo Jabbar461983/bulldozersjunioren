@@ -1,6 +1,6 @@
 -- Streethockey Junioren-Tracker – Phase 1 Grundschema
 -- Legt Tabellen, Rollen-Hilfsfunktionen, Trigger und Row-Level-Security (RLS)
--- Policies fuer das rollenbasierte Berechtigungssystem an.
+-- Policies für das rollenbasierte Berechtigungssystem an.
 
 -- ---------------------------------------------------------------------------
 -- Enums
@@ -88,7 +88,7 @@ create table public.junior_badges (
 );
 
 -- ---------------------------------------------------------------------------
--- Hilfsfunktionen fuer RLS (SECURITY DEFINER, um rekursive RLS-Lookups auf
+-- Hilfsfunktionen für RLS (SECURITY DEFINER, um rekursive RLS-Lookups auf
 -- public.users zu vermeiden)
 -- ---------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ as $$
 $$;
 
 -- admin_exists() muss auch vor dem Login (Registrierungsformular) aufrufbar
--- sein, daher explizites Execute-Grant fuer anon.
+-- sein, daher explizites Execute-Grant für anon.
 grant execute on function public.admin_exists() to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
@@ -133,15 +133,15 @@ grant execute on function public.admin_exists() to anon, authenticated;
 --
 -- Name, Rolle und Team werden beim supabase.auth.signUp() Aufruf als
 -- user_metadata mitgegeben. Der Trigger liest sie serverseitig aus, damit die
--- Profilzeile zuverlaessig entsteht (auch wenn wegen E-Mail-Bestaetigung noch
+-- Profilzeile zuverlässig entsteht (auch wenn wegen E-Mail-Bestätigung noch
 -- keine Client-Session existiert) und damit die Admin-Rolle nicht per Client
 -- manipulierbar ist.
 --
 -- Sicherheitsregel: Es kann sich niemand einfach selbst zum Admin machen. Nur
 -- der allererste registrierte Nutzer darf "admin" erhalten (Bootstrap). Jede
 -- weitere Registrierung mit rolle='admin' wird automatisch auf 'junior'
--- zurueckgestuft. Weitere Admins muessen spaeter von einem bestehenden Admin
--- befoerdert werden (siehe README, Abschnitt "Sicherheitshinweise").
+-- zurückgestuft. Weitere Admins müssen später von einem bestehenden Admin
+-- befördert werden (siehe README, Abschnitt "Sicherheitshinweise").
 -- ---------------------------------------------------------------------------
 
 create or replace function public.handle_new_user()
@@ -175,8 +175,8 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
 
--- Verhindert, dass sich Nutzer nachtraeglich selbst eine andere Rolle oder ein
--- anderes Team zuweisen (Privilege-Escalation). Nur Admins duerfen das.
+-- Verhindert, dass sich Nutzer nachträglich selbst eine andere Rolle oder ein
+-- anderes Team zuweisen (Privilege-Escalation). Nur Admins dürfen das.
 create or replace function public.prevent_privileged_field_change()
 returns trigger
 language plpgsql
@@ -186,7 +186,7 @@ as $$
 begin
   if (new.rolle <> old.rolle or new.team_id is distinct from old.team_id)
      and public.current_user_role() <> 'admin' then
-    raise exception 'Nur Admins duerfen Rolle oder Team aendern.';
+    raise exception 'Nur Admins dürfen Rolle oder Team ändern.';
   end if;
   return new;
 end;
@@ -207,10 +207,10 @@ alter table public.selbsteinschaetzungen enable row level security;
 alter table public.badges enable row level security;
 alter table public.junior_badges enable row level security;
 
--- teams: Liste ist oeffentlich lesbar (auch fuer noch nicht eingeloggte
--- Nutzer, da die Team-Auswahl bereits im Registrierungsformular benoetigt
+-- teams: Liste ist öffentlich lesbar (auch für noch nicht eingeloggte
+-- Nutzer, da die Team-Auswahl bereits im Registrierungsformular benötigt
 -- wird). Es werden nur unkritische Stammdaten (Name, Altersgruppe, Farben)
--- preisgegeben. Nur Admin darf Teams anlegen/aendern/loeschen.
+-- preisgegeben. Nur Admin darf Teams anlegen/ändern/löschen.
 create policy teams_select_all on public.teams
   for select
   to anon, authenticated
@@ -232,7 +232,7 @@ create policy teams_delete_admin on public.teams
   using (public.current_user_role() = 'admin');
 
 -- users: eigene Zeile, Trainer sehen Junioren des eigenen Teams, Admin sieht
--- alles. Insert passiert ausschliesslich ueber den handle_new_user()-Trigger.
+-- alles. Insert passiert ausschliesslich über den handle_new_user()-Trigger.
 create policy users_select_own on public.users
   for select
   to authenticated
@@ -263,8 +263,8 @@ create policy users_update_admin on public.users
   to authenticated
   using (public.current_user_role() = 'admin');
 
--- uebungen: sichtbar fuer die eigene Altersgruppe (ueber das eigene Team),
--- Admin sieht alles. Erstellen/Aendern duerfen Trainer (eigene Uebungen) und
+-- uebungen: sichtbar für die eigene Altersgruppe (über das eigene Team),
+-- Admin sieht alles. Erstellen/Ändern dürfen Trainer (eigene Übungen) und
 -- Admin (alles).
 create policy uebungen_select_own_altersgruppe on public.uebungen
   for select
@@ -337,9 +337,9 @@ create policy selbsteinschaetzungen_update_own_or_admin on public.selbsteinschae
   to authenticated
   using (junior_id = auth.uid() or public.current_user_role() = 'admin');
 
--- badges / junior_badges: Katalog ist oeffentlich (fuer alle eingeloggten
--- Nutzer) lesbar. Vergabe (Insert) erfolgt in einer spaeteren Phase ueber
--- Server-/Admin-Logik, daher hier bewusst keine Insert-Policy fuer normale
+-- badges / junior_badges: Katalog ist öffentlich (für alle eingeloggten
+-- Nutzer) lesbar. Vergabe (Insert) erfolgt in einer späteren Phase über
+-- Server-/Admin-Logik, daher hier bewusst keine Insert-Policy für normale
 -- Nutzer.
 create policy badges_select_all on public.badges
   for select

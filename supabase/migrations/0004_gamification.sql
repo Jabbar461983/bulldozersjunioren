@@ -1,9 +1,9 @@
 -- Phase 4 – Gamification-Engine (Punkte, Level, Streaks, Badges)
 --
--- Erweitert das Datenmodell um woechentliche Streaks, eine konfigurierbare
+-- Erweitert das Datenmodell um wöchentliche Streaks, eine konfigurierbare
 -- Punkte-Basis, Web-Push-Abonnements und einen Badge-Katalog, und ersetzt
 -- submit_selbsteinschaetzung() durch eine Version, die Level-Aufstieg und neu
--- vergebene Badges direkt zurueckgibt (fuer die Push-Benachrichtigung).
+-- vergebene Badges direkt zurückgibt (für die Push-Benachrichtigung).
 
 -- ---------------------------------------------------------------------------
 -- 1) Schema-Erweiterungen
@@ -38,7 +38,7 @@ create policy punkte_konfiguration_update_admin on public.punkte_konfiguration
   to authenticated
   using (public.current_user_role() = 'admin');
 
--- Web-Push-Abonnements: ein Nutzer kann mehrere Geraete/Browser haben.
+-- Web-Push-Abonnements: ein Nutzer kann mehrere Geräte/Browser haben.
 create table public.push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users (id) on delete cascade,
@@ -67,17 +67,17 @@ alter table public.badges add constraint badges_name_unique unique (name);
 --
 -- kriterium_typ steuert, wie pruefe_und_vergib_badges() weiter unten das
 -- Kriterium auswertet:
---   'kategorie_geschafft' – kriterium_wert = Anzahl "geschafft"-Einschaetzungen
+--   'kategorie_geschafft' – kriterium_wert = Anzahl "geschafft"-Einschätzungen
 --                            in der Kategorie (badges.kategorie)
---   'streak_tage'          – kriterium_wert = benoetigter taeglicher Streak
---   'streak_wochen'        – kriterium_wert = benoetigter woechentlicher Streak
---   'level'                – kriterium_wert = benoetigtes Level
+--   'streak_tage'          – kriterium_wert = benötigter täglicher Streak
+--   'streak_wochen'        – kriterium_wert = benötigter wöchentlicher Streak
+--   'level'                – kriterium_wert = benötigtes Level
 --   'allrounder'           – kriterium_wert = Anzahl unterschiedlicher
 --                            Kategorien mit mindestens einer "geschafft"-
---                            Einschaetzung (aktuell 6 = alle Kategorien)
+--                            Einschätzung (aktuell 6 = alle Kategorien)
 --
--- Weitere Badges lassen sich spaeter einfach per INSERT ergaenzen, ohne
--- Code-Aenderungen an der Vergabe-Engine.
+-- Weitere Badges lassen sich später einfach per INSERT ergänzen, ohne
+-- Code-Änderungen an der Vergabe-Engine.
 -- ---------------------------------------------------------------------------
 
 insert into public.badges (name, beschreibung, icon, kategorie, kriterium_typ, kriterium_wert)
@@ -124,11 +124,11 @@ on conflict (name) do nothing;
 --
 -- Dreieckszahlen-Formel: um Level n zu erreichen, werden insgesamt
 --   punkte_fuer_level(n) = 50 * (n - 1) * n
--- Punkte benoetigt. Jedes weitere Level braucht damit einen wachsenden
+-- Punkte benötigt. Jedes weitere Level braucht damit einen wachsenden
 -- Punkteabstand (Level 2: 100, Level 3: 300, Level 4: 600, Level 5: 1000, …) –
--- die Differenz zum jeweils naechsten Level waechst linear um 100 Punkte pro
--- Levelstufe (Dreieckszahl-Wachstum), was ein spuerbar, aber nicht
--- uebertrieben schneller wachsendes Levelsystem ergibt.
+-- die Differenz zum jeweils nächsten Level wächst linear um 100 Punkte pro
+-- Levelstufe (Dreieckszahl-Wachstum), was ein spürbar, aber nicht
+-- übertrieben schneller wachsendes Levelsystem ergibt.
 -- ---------------------------------------------------------------------------
 
 create or replace function public.punkte_fuer_level(p_level integer)
@@ -155,15 +155,15 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 4) Streak-Berechnung (taeglich + woechentlich)
+-- 4) Streak-Berechnung (täglich + wöchentlich)
 --
 -- Wird nur bei "geschafft = true" aufgerufen (siehe submit_selbsteinschaetzung
--- weiter unten). Woechentlich wird per ISO-Woche (Montag als Wochenstart)
--- gezaehlt. Ein Tag/eine Woche ohne Aktivitaet setzt den jeweiligen Streak auf
--- 1 zurueck (nicht 0), da der Aufruf selbst schon die neue Aktivitaet ist;
--- fehlt jede weitere Aktivitaet, zeigt das Frontend den Streak anhand von
+-- weiter unten). Wöchentlich wird per ISO-Woche (Montag als Wochenstart)
+-- gezählt. Ein Tag/eine Woche ohne Aktivität setzt den jeweiligen Streak auf
+-- 1 zurück (nicht 0), da der Aufruf selbst schon die neue Aktivität ist;
+-- fehlt jede weitere Aktivität, zeigt das Frontend den Streak anhand von
 -- streak_letzte_aktivitaet/streak_letzte_woche als "abgebrochen" (0) an, ohne
--- dass dafuer ein weiterer Schreibzugriff noetig ist.
+-- dass dafür ein weiterer Schreibzugriff nötig ist.
 -- ---------------------------------------------------------------------------
 
 create or replace function public.aktualisiere_streaks(p_junior_id uuid, p_heute date)
@@ -185,7 +185,7 @@ begin
     where id = p_junior_id;
 
   if v_letzte_aktivitaet = p_heute then
-    -- bereits heute erfasst (zweite Einschaetzung am selben Tag) – unveraendert
+    -- bereits heute erfasst (zweite Einschätzung am selben Tag) – unverändert
     null;
   elsif v_letzte_aktivitaet = p_heute - 1 then
     v_streak_tage := coalesce(v_streak_tage, 0) + 1;
@@ -214,8 +214,8 @@ begin
 end;
 $$;
 
--- Streak-Felder ebenfalls vor direkten Client-Updates schuetzen (siehe
--- Migration 0003 fuer punkte_total/level_aktuell/streak_counter/
+-- Streak-Felder ebenfalls vor direkten Client-Updates schützen (siehe
+-- Migration 0003 für punkte_total/level_aktuell/streak_counter/
 -- streak_letzte_aktivitaet – hier nur um die zwei neuen Spalten erweitert).
 create or replace function public.prevent_privileged_field_change()
 returns trigger
@@ -226,7 +226,7 @@ as $$
 begin
   if (new.rolle <> old.rolle or new.team_id is distinct from old.team_id)
      and public.current_user_role() <> 'admin' then
-    raise exception 'Nur Admins duerfen Rolle oder Team aendern.';
+    raise exception 'Nur Admins dürfen Rolle oder Team ändern.';
   end if;
 
   if (
@@ -239,7 +239,7 @@ begin
      )
      and public.current_user_role() <> 'admin'
      and coalesce(current_setting('app.allow_points_update', true), 'false') <> 'true' then
-    raise exception 'Punkte, Level und Streak duerfen nicht direkt geaendert werden.';
+    raise exception 'Punkte, Level und Streak dürfen nicht direkt geändert werden.';
   end if;
 
   return new;
@@ -249,10 +249,10 @@ $$;
 -- ---------------------------------------------------------------------------
 -- 5) Badge-Vergabe-Engine
 --
--- Datengetrieben ueber badges.kriterium_typ/kriterium_wert – neue Badges
--- lassen sich per INSERT in public.badges ergaenzen, ohne diese Funktion
--- anzupassen (ausser ein komplett neuer kriterium_typ wird eingefuehrt).
--- Gibt alle in diesem Aufruf NEU vergebenen Badges zurueck.
+-- Datengetrieben über badges.kriterium_typ/kriterium_wert – neue Badges
+-- lassen sich per INSERT in public.badges ergänzen, ohne diese Funktion
+-- anzupassen (ausser ein komplett neuer kriterium_typ wird eingeführt).
+-- Gibt alle in diesem Aufruf NEU vergebenen Badges zurück.
 -- ---------------------------------------------------------------------------
 
 create or replace function public.pruefe_und_vergib_badges(p_junior_id uuid)
@@ -324,8 +324,8 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- 6) submit_selbsteinschaetzung neu fassen: gibt jetzt Level-Aufstieg und neu
--- vergebene Badges zurueck, damit das Frontend genau dafuer (und nur dafuer)
--- eine Push-Benachrichtigung ausloesen kann.
+-- vergebene Badges zurück, damit das Frontend genau dafür (und nur dafür)
+-- eine Push-Benachrichtigung auslösen kann.
 -- ---------------------------------------------------------------------------
 
 do $$
@@ -366,7 +366,7 @@ begin
   end if;
 
   if not exists (select 1 from public.uebungen where id = p_uebung_id) then
-    raise exception 'Uebung nicht gefunden.';
+    raise exception 'Übung nicht gefunden.';
   end if;
 
   select basis_punkte_pro_uebung into v_basis_punkte

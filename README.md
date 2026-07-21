@@ -1,7 +1,7 @@
 # Bulldozers Challenge
 
-Progressive Web App (PWA) fuer die Junioren des Streethockeyclub Bulldozers: Uebungen zum
-Zuhause-Trainieren, Selbsteinschaetzung und Ranglisten zum Vergleichen mit dem Team.
+Progressive Web App (PWA) für die Junioren des Streethockeyclub Bulldozers: Übungen zum
+Zuhause-Trainieren, Selbsteinschätzung und Ranglisten zum Vergleichen mit dem Team.
 
 **Phase 1:** Projekt-Grundgerüst, Authentifizierung, Rollen- und Berechtigungssystem, Datenmodell.
 **Phase 2:** Übungsverwaltung für Trainer/Admin (Erstellen, Bearbeiten, Löschen, Filtern).
@@ -63,7 +63,7 @@ scripts/
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
-5. Fuer Web Push (Phase 4, optional): VAPID-Schluessel generieren mit
+5. Für Web Push (Phase 4, optional): VAPID-Schlüssel generieren mit
    `npx web-push generate-vapid-keys`, dann die Edge Function deployen und die Secrets setzen
    (siehe Abschnitt "Web-Push-Benachrichtigungen" weiter unten).
 
@@ -78,7 +78,7 @@ cp .env.example .env.local
 ```
 VITE_SUPABASE_URL=https://DEIN-PROJEKT.supabase.co
 VITE_SUPABASE_ANON_KEY=DEIN-ANON-KEY
-VITE_VAPID_PUBLIC_KEY=DEIN-VAPID-PUBLIC-KEY   # optional, nur fuer Web Push (Phase 4)
+VITE_VAPID_PUBLIC_KEY=DEIN-VAPID-PUBLIC-KEY   # optional, nur für Web Push (Phase 4)
 ```
 
 ### 4. Abhängigkeiten installieren & starten
@@ -258,7 +258,7 @@ Da beide nur bei einer neuen Einschätzung neu berechnet werden, würde ein bere
 Streak ohne neue Aktivität stur den alten Wert zeigen — deshalb prüft das Frontend
 (`effektiverTagesStreak`/`effektiverWochenStreak`) beim Anzeigen zusätzlich, ob seither schon zu
 viel Zeit vergangen ist, und zeigt in dem Fall 0 an (Anzeige-Detail, keine Sicherheitsfrage: die
-naechste echte Einschätzung berechnet ohnehin serverseitig neu).
+nächste echte Einschätzung berechnet ohnehin serverseitig neu).
 
 ### Badges (27, datengetrieben)
 
