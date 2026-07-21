@@ -11,6 +11,9 @@ export default defineConfig({
       workbox: {
         // Basis-Caching: App-Shell (JS/CSS/HTML/Icons) offline verfuegbar.
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        // Bindet die Push-/Notification-Click-Handler (Phase 4) in den
+        // generierten Service Worker ein.
+        importScripts: ['push-sw.js'],
       },
       manifest: {
         name: 'Streethockey Junioren-Tracker',

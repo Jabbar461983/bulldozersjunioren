@@ -7,6 +7,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { JuniorHome } from './pages/JuniorHome';
 import { JuniorUebungDetail } from './pages/JuniorUebungDetail';
 import { JuniorVerlauf } from './pages/JuniorVerlauf';
+import { JuniorProfil } from './pages/JuniorProfil';
 import { TrainerHome } from './pages/TrainerHome';
 import { AdminHome } from './pages/AdminHome';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -50,6 +51,17 @@ function App() {
               <ProtectedRoute>
                 <RoleRoute allowed={['junior']}>
                   <JuniorVerlauf />
+                </RoleRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/junior/profil"
+            element={
+              <ProtectedRoute>
+                <RoleRoute allowed={['junior']}>
+                  <JuniorProfil />
                 </RoleRoute>
               </ProtectedRoute>
             }

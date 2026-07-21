@@ -5,8 +5,9 @@ Selbsteinschaetzung und Ranglisten zum Vergleichen mit dem Team.
 
 **Phase 1:** Projekt-Grundgerüst, Authentifizierung, Rollen- und Berechtigungssystem, Datenmodell.
 **Phase 2:** Übungsverwaltung für Trainer/Admin (Erstellen, Bearbeiten, Löschen, Filtern).
-**Phase 3 (dieses Repo-Stadium):** Junior-Ansicht mit Selbsteinschätzung und Verlauf.
-Ranglisten, Badges, Level-Formel etc. folgen in späteren Phasen.
+**Phase 3:** Junior-Ansicht mit Selbsteinschätzung und Verlauf.
+**Phase 4 (dieses Repo-Stadium):** Gamification-Engine — Punkte, Level, tägliche/wöchentliche
+Streaks, 27 Badges und Web-Push-Benachrichtigungen. Ranglisten folgen in einer späteren Phase.
 
 ## Tech-Stack
 
@@ -48,14 +49,17 @@ scripts/
 
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
-3. Das Datenbankschema anlegen: Die Migrationen `supabase/migrations/0001_init.sql`,
-   `0002_uebungen_phase2.sql` und `0003_selbsteinschaetzung.sql` der Reihe nach im
-   **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI: `supabase db push`,
-   sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den Storage-Bucket
-   `uebung-bilder` an, Migration 0003 die Funktion `submit_selbsteinschaetzung()`.
+3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
+   (0001 → 0004) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
+   Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
+   komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos).
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
+5. Fuer Web Push (Phase 4, optional): VAPID-Schluessel generieren mit
+   `npx web-push generate-vapid-keys`, dann die Edge Function deployen und die Secrets setzen
+   (siehe Abschnitt "Web-Push-Benachrichtigungen" weiter unten).
 
 ### 3. Umgebungsvariablen
 
@@ -68,6 +72,7 @@ cp .env.example .env.local
 ```
 VITE_SUPABASE_URL=https://DEIN-PROJEKT.supabase.co
 VITE_SUPABASE_ANON_KEY=DEIN-ANON-KEY
+VITE_VAPID_PUBLIC_KEY=DEIN-VAPID-PUBLIC-KEY   # optional, nur fuer Web Push (Phase 4)
 ```
 
 ### 4. Abhängigkeiten installieren & starten
@@ -133,7 +138,8 @@ Die Durchsetzung erfolgt auf zwei Ebenen:
 Siehe `supabase/migrations/0001_init.sql` für das vollständige Schema inkl. Kommentaren:
 
 - `teams` — Name, Altersgruppe (U9/U12/U15/U18), Platzhalter für Logo/Farben
-- `users` — Profil, Rolle, Team-Zugehörigkeit, Punkte/Level/Streak (Felder für spätere Phasen)
+- `users` — Profil, Rolle, Team-Zugehörigkeit, Punkte/Level/täglicher+wöchentlicher Streak
+  (seit Phase 4 aktiv befüllt)
 - `uebungen` — Titel, Beschreibung, Kategorie, Ziel-Altersgruppen, Bild-URL, Ersteller.
   `video_url` existiert im Schema bereits, wird aber erst in einer späteren Phase genutzt
   (im Formular als ausgegrautes Feld sichtbar).
@@ -174,8 +180,8 @@ Trainer und Admin sehen auf ihrer Startseite eine **Übungen**-Karte (`UebungenM
   Trainer-Freigabe.
 - **Verlaufsansicht** (`/junior/verlauf`, `JuniorVerlauf`): alle bisherigen Selbsteinschätzungen
   des eigenen Kontos, neueste zuerst.
-- **Punktevergabe (Platzhalter):** Bei "Geschafft = Ja" werden serverseitig fix **20 Punkte** auf
-  `users.punkte_total` gutgeschrieben. Die genaue Formel/Level-Berechnung folgt in Phase 4.
+- **Punktevergabe:** Bei "Geschafft = Ja" werden serverseitig Punkte auf `users.punkte_total`
+  gutgeschrieben (Basiswert konfigurierbar, siehe Phase 4).
 
 ### Sicherheitshinweise (Phase 3)
 
@@ -191,10 +197,104 @@ Da hier zum ersten Mal echte Punktevergabe hinzukommt, wurde der Schreibzugriff 
   Flag) dürfen diese Felder ändern. Ohne diesen Schutz könnte sich ein Junior sonst per
   `supabase.from('users').update({ punkte_total: ... })` beliebig Punkte gutschreiben.
 
+## Gamification-Engine (Phase 4)
+
+Alle Berechnungen (Punkte, Level, Streaks, Badge-Vergabe) laufen **serverseitig** in Postgres
+(`supabase/migrations/0004_gamification.sql`) — das Frontend zeigt nur an, was der Server bereits
+validiert und gespeichert hat. Einziger Schreibpfad bleibt `submit_selbsteinschaetzung()`.
+
+### Punkte
+
+Der Basiswert pro erfolgreich eingeschätzter Übung liegt in der Singleton-Tabelle
+`punkte_konfiguration.basis_punkte_pro_uebung` (Default 20) statt hart codiert in einer Funktion —
+kann direkt in der Supabase-Tabellenansicht angepasst werden, ohne Code/Migrationen anzufassen.
+
+### Level
+
+Dreieckszahlen-Formel: um Level `n` zu erreichen, werden insgesamt
+`punkte_fuer_level(n) = 50 * (n - 1) * n` Punkte benötigt (Level 2 = 100, Level 3 = 300,
+Level 4 = 600, Level 5 = 1000, …) — jede Stufe braucht spürbar mehr als die vorherige. Implementiert
+in SQL (`berechne_level()`, massgeblich) und identisch gespiegelt in `src/lib/gamification.ts`
+(nur für die Anzeige/den Fortschrittsbalken, damit nicht für jede Darstellung ein Server-Roundtrip
+nötig ist).
+
+### Streaks
+
+`aktualisiere_streaks()` pflegt zwei unabhängige Zähler, beide nur bei "Geschafft = Ja" bewertet:
+
+- **Täglich** (`streak_counter`/`streak_letzte_aktivitaet`): +1 bei Aktivität am Folgetag, Reset
+  auf 1 bei einer Lücke von ≥ 2 Tagen.
+- **Wöchentlich** (`streak_wochen`/`streak_letzte_woche`, ISO-Woche ab Montag): +1 bei Aktivität in
+  der Folgewoche, Reset auf 1 bei einer Lücke von ≥ 2 Wochen.
+
+Da beide nur bei einer neuen Einschätzung neu berechnet werden, würde ein bereits abgebrochener
+Streak ohne neue Aktivität stur den alten Wert zeigen — deshalb prüft das Frontend
+(`effektiverTagesStreak`/`effektiverWochenStreak`) beim Anzeigen zusätzlich, ob seither schon zu
+viel Zeit vergangen ist, und zeigt in dem Fall 0 an (Anzeige-Detail, keine Sicherheitsfrage: die
+naechste echte Einschätzung berechnet ohnehin serverseitig neu).
+
+### Badges (27, datengetrieben)
+
+`public.badges` ist ein Konfigurationskatalog (`kriterium_typ` + `kriterium_wert`), keine
+hart codierte Logik — weitere Badges lassen sich per `INSERT` ergänzen:
+
+| kriterium_typ | Bedeutung | Anzahl |
+|---|---|---|
+| `kategorie_geschafft` | X "geschafft"-Einschätzungen in einer Kategorie (5/20/50 × 6 Kategorien) | 18 |
+| `streak_tage` | täglicher Streak ≥ X (3/7/30) | 3 |
+| `streak_wochen` | wöchentlicher Streak ≥ X (4) | 1 |
+| `level` | Level ≥ X (5/10/15/20) | 4 |
+| `allrounder` | mindestens 1 "geschafft" in allen 6 Kategorien | 1 |
+
+`pruefe_und_vergib_badges()` wertet nach jeder Einschätzung alle noch nicht erreichten Badges
+generisch anhand von `kriterium_typ` aus und vergibt neu erreichte sofort.
+
+### Junior-Profilseite (`/junior/profil`)
+
+Level mit Fortschrittsbalken, Punkte, beide Streaks, Badge-Grid (erreichte hervorgehoben, Rest
+ausgegraut) sowie der Opt-in für Push-Benachrichtigungen.
+
+### Web-Push-Benachrichtigungen
+
+Ausgelöst ausschliesslich bei **neuem Badge** und **Level-Aufstieg** (keine weiteren Trigger wie
+Trainingserinnerungen in dieser Phase):
+
+1. `submit_selbsteinschaetzung()` gibt `level_aufstieg`/`neues_level`/`neue_badges` zurück.
+2. Bei einem Treffer ruft das Frontend (`sendeGamificationPush`) die Supabase Edge Function
+   `send-push-notification` auf (`supabase/functions/send-push-notification`), die per
+   `web-push`/VAPID an alle abonnierten Geräte des Nutzers sendet.
+3. `public/push-sw.js` (per `workbox.importScripts` in den generierten Service Worker eingebunden)
+   zeigt die eingehende Push-Nachricht als Benachrichtigung an.
+
+Setup für ein echtes Supabase-Projekt:
+
+```bash
+npx web-push generate-vapid-keys          # liefert Public/Private Key
+supabase functions deploy send-push-notification
+supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:you@example.com
+```
+
+Den Public Key zusätzlich als `VITE_VAPID_PUBLIC_KEY` in `.env.local` eintragen. Ohne diese Secrets
+funktioniert die App normal weiter — der "Benachrichtigungen aktivieren"-Button meldet dann nur,
+dass Push noch nicht konfiguriert ist, und ein fehlgeschlagener Push-Versand wird verschluckt statt
+den Selbsteinschätzungs-Flow zu stören.
+
+### Sicherheitshinweise (Phase 4)
+
+- `punkte_total`, `level_aktuell`, `streak_counter`, `streak_letzte_aktivitaet`, `streak_wochen`
+  und `streak_letzte_woche` bleiben (wie schon in Phase 3) per DB-Trigger vor direkten
+  Client-Updates geschützt; jetzt auch für die beiden neuen Streak-Spalten.
+- `push_subscriptions` ist per RLS auf die eigenen Zeilen beschränkt; die Edge Function nutzt das
+  JWT des Aufrufers (nicht den Service-Role-Key), sendet also ausschliesslich an die eigenen
+  Geräte des jeweils authentifizierten Nutzers.
+- Badge-Vergabe passiert ausschliesslich serverseitig in `pruefe_und_vergib_badges()` — es gibt
+  keine Insert-Policy für `junior_badges`, ein Client kann sich also keine Badges selbst verleihen.
+
 ## Bekannte Grenzen dieser Phase
 
-- Ranglisten und Badges folgen in Phase 4, ebenso die endgültige Punkte-/Level-Formel.
-- Kalenderansicht des Verlaufs ist bewusst eine einfache Liste (kein echter Kalender) — reicht
-  laut Aufgabenstellung für diese Phase.
+- Ranglisten (Team-/Altersgruppen-Vergleich) sind noch nicht umgesetzt.
+- Kalenderansicht des Verlaufs ist bewusst eine einfache Liste (kein echter Kalender).
 - Nutzerverwaltung (Admin) ist noch ein Platzhalter.
 - E-Mail-Templates, Passwort-Reset-UI und Profilbearbeitung sind noch nicht umgesetzt.
+- Web Push erfordert ein deploytes Supabase-Projekt mit Edge Functions + VAPID-Secrets; lokal ohne
+  diese Konfiguration bleibt der Rest der App uneingeschränkt nutzbar.

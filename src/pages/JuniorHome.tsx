@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
+import { effektiverTagesStreak, levelFortschritt } from '../lib/gamification';
 import type { Uebung, UebungKategorie } from '../types/database';
 
 export function JuniorHome() {
@@ -38,14 +39,27 @@ export function JuniorHome() {
     void loadUebungen();
   }, [loadUebungen]);
 
+  const fortschritt = levelFortschritt(profile?.punkte_total ?? 0);
+  const tagesStreak = profile
+    ? effektiverTagesStreak(profile.streak_counter, profile.streak_letzte_aktivitaet)
+    : 0;
+
   return (
     <DashboardLayout>
       <div className="card">
-        <h2>Meine Statistik</h2>
-        <p>Punkte gesamt: {profile?.punkte_total ?? 0}</p>
-        <p>Level: {profile?.level_aktuell ?? 1}</p>
-        <p>Streak: {profile?.streak_counter ?? 0} Tage</p>
-        <Link to="/junior/verlauf">Meinen Verlauf ansehen →</Link>
+        <h2>Level {fortschritt.level}</h2>
+        <div className="progress-track">
+          <div className="progress-fill" style={{ width: `${fortschritt.prozent}%` }} />
+        </div>
+        <p style={{ marginTop: 8 }}>
+          {profile?.punkte_total ?? 0} Punkte · noch {fortschritt.punkteBisNaechstesLevel} bis
+          Level {fortschritt.level + 1}
+        </p>
+        <span className="streak-badge">🔥 {tagesStreak} Tage in Folge</span>
+        <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
+          <Link to="/junior/profil">Mein Profil & Badges →</Link>
+          <Link to="/junior/verlauf">Mein Verlauf →</Link>
+        </div>
       </div>
 
       <div className="card">

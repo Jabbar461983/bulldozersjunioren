@@ -33,6 +33,10 @@ export type User = {
   level_aktuell: number;
   streak_counter: number;
   streak_letzte_aktivitaet: string | null;
+  // Woechentlicher Streak (Phase 4): streak_letzte_woche speichert den Montag
+  // der zuletzt aktiven ISO-Woche.
+  streak_wochen: number;
+  streak_letzte_woche: string | null;
   created_at: string;
 };
 
@@ -76,6 +80,30 @@ export type JuniorBadge = {
   junior_id: string;
   badge_id: string;
   erreicht_am: string;
+};
+
+export type PunkteKonfiguration = {
+  id: number;
+  basis_punkte_pro_uebung: number;
+};
+
+export type PushSubscriptionRow = {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+};
+
+// Rueckgabetyp von submit_selbsteinschaetzung(): neben der gespeicherten
+// Einschaetzung auch, ob dadurch ein Level-Aufstieg ausgeloest wurde und
+// welche Badges neu vergeben wurden (fuer die Push-Benachrichtigung).
+export type SelbsteinschaetzungErgebnis = {
+  einschaetzung: Selbsteinschaetzung;
+  level_aufstieg: boolean;
+  neues_level: number;
+  neue_badges: Badge[];
 };
 
 // Minimales Database-Schema fuer den typisierten Supabase-Client, im gleichen
@@ -122,6 +150,19 @@ export type Database = {
         Update: Partial<JuniorBadge>;
         Relationships: [];
       };
+      punkte_konfiguration: {
+        Row: PunkteKonfiguration;
+        Insert: Partial<PunkteKonfiguration>;
+        Update: Partial<PunkteKonfiguration>;
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: PushSubscriptionRow;
+        Insert: Partial<PushSubscriptionRow> &
+          Pick<PushSubscriptionRow, 'user_id' | 'endpoint' | 'p256dh' | 'auth'>;
+        Update: Partial<PushSubscriptionRow>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -143,7 +184,7 @@ export type Database = {
           p_geschafft: boolean;
           p_gefuehl_sterne: number | null;
         };
-        Returns: Selbsteinschaetzung;
+        Returns: SelbsteinschaetzungErgebnis;
       };
     };
   };

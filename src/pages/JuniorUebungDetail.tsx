@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { SterneAuswahl } from '../components/SterneAuswahl';
 import { KATEGORIE_LABELS } from '../lib/constants';
+import { sendeGamificationPush } from '../lib/push';
 import type { Selbsteinschaetzung, Uebung } from '../types/database';
 
 export function JuniorUebungDetail() {
@@ -65,16 +66,37 @@ export function JuniorUebungDetail() {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.rpc('submit_selbsteinschaetzung', {
+      const { data, error } = await supabase.rpc('submit_selbsteinschaetzung', {
         p_uebung_id: id,
         p_geschafft: geschafft,
         p_gefuehl_sterne: sterne,
       });
       if (error) throw error;
 
-      setSuccess(
-        geschafft ? 'Super gemacht! 20 Punkte gutgeschrieben.' : 'Danke, gespeichert — weiter dranbleiben!'
-      );
+      const punkte = data.einschaetzung.punkte_vergeben;
+      const meldungen: string[] = [
+        geschafft
+          ? `Super gemacht! ${punkte} Punkte gutgeschrieben.`
+          : 'Danke, gespeichert — weiter dranbleiben!',
+      ];
+
+      if (data.level_aufstieg) {
+        meldungen.push(`🎉 Level-Aufstieg! Du bist jetzt Level ${data.neues_level}.`);
+        void sendeGamificationPush({
+          title: 'Level-Aufstieg! 🎉',
+          body: `Du bist jetzt Level ${data.neues_level}.`,
+        });
+      }
+
+      for (const badge of data.neue_badges) {
+        meldungen.push(`${badge.icon ?? '🏅'} Neuer Badge: ${badge.name}`);
+        void sendeGamificationPush({
+          title: 'Neuer Badge erreicht! 🏅',
+          body: badge.name,
+        });
+      }
+
+      setSuccess(meldungen.join(' '));
       setGeschafft(null);
       setSterne(null);
       await Promise.all([refreshProfile(), load()]);
