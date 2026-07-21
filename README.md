@@ -4,8 +4,9 @@ Progressive Web App (PWA) fuer Streethockey-Junioren: Uebungen zum Zuhause-Train
 Selbsteinschaetzung und Ranglisten zum Vergleichen mit dem Team.
 
 **Phase 1:** Projekt-Grundgerüst, Authentifizierung, Rollen- und Berechtigungssystem, Datenmodell.
-**Phase 2 (dieses Repo-Stadium):** Übungsverwaltung für Trainer/Admin (Erstellen, Bearbeiten,
-Löschen, Filtern). Ranglisten, Badges, Selbsteinschätzung etc. folgen in späteren Phasen.
+**Phase 2:** Übungsverwaltung für Trainer/Admin (Erstellen, Bearbeiten, Löschen, Filtern).
+**Phase 3 (dieses Repo-Stadium):** Junior-Ansicht mit Selbsteinschätzung und Verlauf.
+Ranglisten, Badges, Level-Formel etc. folgen in späteren Phasen.
 
 ## Tech-Stack
 
@@ -47,10 +48,11 @@ scripts/
 
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
-3. Das Datenbankschema anlegen: Inhalt von `supabase/migrations/0001_init.sql` und danach
-   `supabase/migrations/0002_uebungen_phase2.sql` im **SQL Editor** des Supabase-Dashboards
-   ausführen (oder via Supabase CLI: `supabase db push`, sofern das Projekt lokal verlinkt ist).
-   Die zweite Migration legt u. a. den Storage-Bucket `uebung-bilder` für Bild-Uploads an.
+3. Das Datenbankschema anlegen: Die Migrationen `supabase/migrations/0001_init.sql`,
+   `0002_uebungen_phase2.sql` und `0003_selbsteinschaetzung.sql` der Reihe nach im
+   **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI: `supabase db push`,
+   sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den Storage-Bucket
+   `uebung-bilder` an, Migration 0003 die Funktion `submit_selbsteinschaetzung()`.
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -135,7 +137,8 @@ Siehe `supabase/migrations/0001_init.sql` für das vollständige Schema inkl. Ko
 - `uebungen` — Titel, Beschreibung, Kategorie, Ziel-Altersgruppen, Bild-URL, Ersteller.
   `video_url` existiert im Schema bereits, wird aber erst in einer späteren Phase genutzt
   (im Formular als ausgegrautes Feld sichtbar).
-- `selbsteinschaetzungen` — Junior bewertet eine Übung (geschafft, Sterne, Punkte)
+- `selbsteinschaetzungen` — Junior bewertet eine Übung (geschafft, Sterne, Punkte). Wird
+  ausschliesslich über die RPC-Funktion `submit_selbsteinschaetzung()` befüllt (siehe unten).
 - `badges` / `junior_badges` — Auszeichnungs-Katalog und Zuordnung zu Junioren
 
 ## Übungsverwaltung (Phase 2)
@@ -156,9 +159,42 @@ Trainer und Admin sehen auf ihrer Startseite eine **Übungen**-Karte (`UebungenM
 - Welche Übungen ein Trainer überhaupt sieht, wird bereits über RLS auf die Altersgruppe(n)
   seines eigenen Teams beschränkt; Admin sieht alle Übungen aller Altersgruppen.
 
+## Junior-Ansicht & Selbsteinschätzung (Phase 3)
+
+- **Übungsliste** (`/junior`): zeigt automatisch nur Übungen der eigenen Altersgruppe (via RLS
+  über das eigene Team bestimmt, kein manueller Filter im Frontend nötig), filterbar nach
+  Kategorie.
+- **Detailansicht** (`/junior/uebungen/:id`, `JuniorUebungDetail`): Titel, Beschreibung, Bild,
+  plus die zweistufige Selbsteinschätzung:
+  1. **Geschafft?** Ja/Nein — bestimmt allein, ob Punkte gutgeschrieben werden.
+  2. **Wie hat es sich angefühlt?** 1–5 Sterne (`SterneAuswahl`) — rein persönliche Reflexion,
+     hat keinen Einfluss auf die Punktevergabe.
+  Jede Einreichung legt einen neuen, datierten Verlaufseintrag an (mehrfache Einschätzungen
+  derselben Übung an verschiedenen Tagen bleiben alle sichtbar) und läuft direkt, ohne
+  Trainer-Freigabe.
+- **Verlaufsansicht** (`/junior/verlauf`, `JuniorVerlauf`): alle bisherigen Selbsteinschätzungen
+  des eigenen Kontos, neueste zuerst.
+- **Punktevergabe (Platzhalter):** Bei "Geschafft = Ja" werden serverseitig fix **20 Punkte** auf
+  `users.punkte_total` gutgeschrieben. Die genaue Formel/Level-Berechnung folgt in Phase 4.
+
+### Sicherheitshinweise (Phase 3)
+
+Da hier zum ersten Mal echte Punktevergabe hinzukommt, wurde der Schreibzugriff verschärft:
+
+- Selbsteinschätzungen können von Junioren **nicht mehr direkt** per `insert`/`update` angelegt
+  werden, sondern ausschliesslich über die SECURITY-DEFINER-Funktion
+  `submit_selbsteinschaetzung(uebung_id, geschafft, gefuehl_sterne)`. Die Funktion bindet
+  `junior_id` fest an `auth.uid()` und berechnet den Punktewert serverseitig — der Client kann
+  weder für einen anderen Nutzer einreichen noch einen eigenen Punktewert vorgeben.
+- `users.punkte_total` (sowie `level_aktuell`/`streak_*`) sind per DB-Trigger vor direkten
+  Client-Updates geschützt; nur Admin oder die genannte Funktion (über ein transaktionslokales
+  Flag) dürfen diese Felder ändern. Ohne diesen Schutz könnte sich ein Junior sonst per
+  `supabase.from('users').update({ punkte_total: ... })` beliebig Punkte gutschreiben.
+
 ## Bekannte Grenzen dieser Phase
 
-- Home-Seiten für Junior sind weiterhin bewusst rudimentär (Platzhalter-Karten) — Übungen für
-  Junioren, Selbsteinschätzung, Ranglisten und Badges folgen in späteren Bauphasen.
+- Ranglisten und Badges folgen in Phase 4, ebenso die endgültige Punkte-/Level-Formel.
+- Kalenderansicht des Verlaufs ist bewusst eine einfache Liste (kein echter Kalender) — reicht
+  laut Aufgabenstellung für diese Phase.
 - Nutzerverwaltung (Admin) ist noch ein Platzhalter.
 - E-Mail-Templates, Passwort-Reset-UI und Profilbearbeitung sind noch nicht umgesetzt.

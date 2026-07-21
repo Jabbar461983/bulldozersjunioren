@@ -5,6 +5,8 @@ import { RoleRoute } from './components/RoleRoute';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { JuniorHome } from './pages/JuniorHome';
+import { JuniorUebungDetail } from './pages/JuniorUebungDetail';
+import { JuniorVerlauf } from './pages/JuniorVerlauf';
 import { TrainerHome } from './pages/TrainerHome';
 import { AdminHome } from './pages/AdminHome';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -26,6 +28,28 @@ function App() {
               <ProtectedRoute>
                 <RoleRoute allowed={['junior']}>
                   <JuniorHome />
+                </RoleRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/junior/uebungen/:id"
+            element={
+              <ProtectedRoute>
+                <RoleRoute allowed={['junior']}>
+                  <JuniorUebungDetail />
+                </RoleRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/junior/verlauf"
+            element={
+              <ProtectedRoute>
+                <RoleRoute allowed={['junior']}>
+                  <JuniorVerlauf />
                 </RoleRoute>
               </ProtectedRoute>
             }

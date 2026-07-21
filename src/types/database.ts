@@ -137,6 +137,14 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: string;
       };
+      submit_selbsteinschaetzung: {
+        Args: {
+          p_uebung_id: string;
+          p_geschafft: boolean;
+          p_gefuehl_sterne: number | null;
+        };
+        Returns: Selbsteinschaetzung;
+      };
     };
   };
 };
