@@ -25,7 +25,8 @@ export type Team = {
 
 export type User = {
   id: string;
-  name: string;
+  vorname: string;
+  nachname: string;
   email: string;
   rolle: Rolle;
   team_id: string | null;
@@ -106,6 +107,18 @@ export type SelbsteinschaetzungErgebnis = {
   neue_badges: Badge[];
 };
 
+// Zeile aus der public.rangliste-View: bewusst nur unkritische Felder,
+// Nachname ist bereits serverseitig auf den ersten Buchstaben gekuerzt.
+export type RanglisteEintrag = {
+  id: string;
+  vorname: string;
+  nachname_initiale: string | null;
+  punkte_total: number;
+  level_aktuell: number;
+  team_id: string | null;
+  team_name: string | null;
+};
+
 // Minimales Database-Schema fuer den typisierten Supabase-Client, im gleichen
 // Format wie von `supabase gen types typescript` generiert (Tables/Views/
 // Functions je Tabelle mit Row/Insert/Update/Relationships).
@@ -120,7 +133,7 @@ export type Database = {
       };
       users: {
         Row: User;
-        Insert: Partial<User> & Pick<User, 'id' | 'name' | 'email'>;
+        Insert: Partial<User> & Pick<User, 'id' | 'vorname' | 'nachname' | 'email'>;
         Update: Partial<User>;
         Relationships: [];
       };
@@ -164,7 +177,12 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      rangliste: {
+        Row: RanglisteEintrag;
+        Relationships: [];
+      };
+    };
     Functions: {
       admin_exists: {
         Args: Record<PropertyKey, never>;

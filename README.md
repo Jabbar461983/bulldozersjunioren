@@ -54,11 +54,12 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0005) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0006) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
-   Storage-Bucket `team-logos` für den Vereinslogo-Upload.
+   Storage-Bucket `team-logos` für den Vereinslogo-Upload, 0006 die Trennung von Vorname/Nachname
+   sowie die `rangliste`-View.
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -202,6 +203,23 @@ Da hier zum ersten Mal echte Punktevergabe hinzukommt, wurde der Schreibzugriff 
   Client-Updates geschützt; nur Admin oder die genannte Funktion (über ein transaktionslokales
   Flag) dürfen diese Felder ändern. Ohne diesen Schutz könnte sich ein Junior sonst per
   `supabase.from('users').update({ punkte_total: ... })` beliebig Punkte gutschreiben.
+
+## Vorname/Nachname & Rangliste
+
+- **Registrierung:** Statt einem einzelnen "Name"-Feld werden **Vorname** und **Nachname**
+  getrennt erfasst (`users.vorname`/`users.nachname`, siehe Migration 0006). Grund: Nur so lässt
+  sich die Rangliste zuverlässig auf "Vorname + erster Buchstabe des Nachnamens" kürzen, ohne
+  einen Freitext-Namen nachträglich raten zu müssen.
+- **Rangliste** (Karte auf `/junior`, `RanglisteCard`): zeigt alle Junioren, standardmässig
+  teamübergreifend, mit einem Dropdown-Filter nach Team. Sortiert nach Punkten absteigend, die
+  eigene Zeile ist hervorgehoben ("(Du)").
+- **Datenschutz:** Angezeigt wird nur `Vorname Nachname-Initiale.` (z. B. "Max M."). Das passiert
+  nicht erst im Frontend, sondern schon in der Datenbank: Die View `public.rangliste` liefert von
+  vornherein nur `left(nachname, 1)` statt des vollen Nachnamens — der volle Nachname (und erst
+  recht die E-Mail-Adresse) verlässt die Datenbank für diese Ansicht nie. Die View läuft bewusst
+  mit den Rechten ihres Besitzers (nicht der aufrufenden Person) und umgeht damit gezielt die
+  RLS-Policies von `users` (die einem Junior sonst nur die eigene Zeile zeigen würden) — sicher,
+  weil die View selbst nur diese unkritischen Spalten exponiert.
 
 ## Gamification-Engine (Phase 4)
 

@@ -15,7 +15,8 @@ import type { Rolle, Team, User } from '../types/database';
 interface SignUpInput {
   email: string;
   password: string;
-  name: string;
+  vorname: string;
+  nachname: string;
   rolle: Rolle;
   teamId: string | null;
 }
@@ -96,24 +97,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [loadProfile]);
 
-  const signUp = useCallback(async ({ email, password, name, rolle, teamId }: SignUpInput) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          rolle,
-          team_id: teamId,
+  const signUp = useCallback(
+    async ({ email, password, vorname, nachname, rolle, teamId }: SignUpInput) => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            vorname,
+            nachname,
+            rolle,
+            team_id: teamId,
+          },
         },
-      },
-    });
+      });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    // Ohne aktive Session muss die E-Mail-Adresse zuerst bestaetigt werden.
-    return { needsEmailConfirmation: !data.session };
-  }, []);
+      // Ohne aktive Session muss die E-Mail-Adresse zuerst bestaetigt werden.
+      return { needsEmailConfirmation: !data.session };
+    },
+    []
+  );
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });

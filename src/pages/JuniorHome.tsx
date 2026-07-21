@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { Maskottchen } from '../components/Maskottchen';
 import { PushOnboarding } from '../components/PushOnboarding';
+import { RanglisteCard } from '../components/RanglisteCard';
 import { KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import { effektiverTagesStreak, levelFortschritt } from '../lib/gamification';
 import type { Uebung, UebungKategorie } from '../types/database';
@@ -59,7 +60,7 @@ export function JuniorHome() {
   return (
     <DashboardLayout>
       <div className="card">
-        <Maskottchen zustand="neutral" text={`Hallo ${profile?.name ?? ''}! ${begruessung}`} />
+        <Maskottchen zustand="neutral" text={`Hallo ${profile?.vorname ?? ''}! ${begruessung}`} />
       </div>
 
       <PushOnboarding />
@@ -79,6 +80,8 @@ export function JuniorHome() {
           <Link to="/junior/verlauf">Mein Verlauf →</Link>
         </div>
       </div>
+
+      <RanglisteCard />
 
       <div className="card">
         <div

@@ -14,7 +14,8 @@ export function RegisterPage() {
   const { session, signUp } = useAuth();
   const navigate = useNavigate();
 
-  const [name, setName] = useState('');
+  const [vorname, setVorname] = useState('');
+  const [nachname, setNachname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rolle, setRolle] = useState<Rolle>('junior');
@@ -66,7 +67,8 @@ export function RegisterPage() {
       const { needsEmailConfirmation } = await signUp({
         email,
         password,
-        name,
+        vorname,
+        nachname,
         rolle,
         teamId: needsTeam ? teamId : null,
       });
@@ -99,13 +101,23 @@ export function RegisterPage() {
         {!info && (
           <form onSubmit={handleSubmit}>
             <div className="field">
-              <label htmlFor="name">Name</label>
+              <label htmlFor="vorname">Vorname</label>
               <input
-                id="name"
+                id="vorname"
                 type="text"
                 required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={vorname}
+                onChange={(e) => setVorname(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="nachname">Nachname</label>
+              <input
+                id="nachname"
+                type="text"
+                required
+                value={nachname}
+                onChange={(e) => setNachname(e.target.value)}
               />
             </div>
             <div className="field">

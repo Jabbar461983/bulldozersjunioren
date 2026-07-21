@@ -20,7 +20,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="brand-badge">🏒</div>
           )}
           <div>
-            <h1 style={{ fontSize: '1.4rem', margin: 0 }}>Hallo, {profile?.name}</h1>
+            <h1 style={{ fontSize: '1.4rem', margin: 0 }}>
+              Hallo, {profile?.vorname} {profile?.nachname}
+            </h1>
             {profile && <span className="role-pill">{ROLE_LABELS[profile.rolle]}</span>}
           </div>
         </div>
