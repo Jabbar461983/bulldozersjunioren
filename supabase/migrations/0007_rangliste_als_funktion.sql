@@ -1,12 +1,12 @@
--- Behebt den Supabase-Security-Linter-Hinweis "Security Definer View" fuer
--- public.rangliste (Migration 0006): Der Scanner markiert grundsaetzlich jede
+-- Behebt den Supabase-Security-Linter-Hinweis "Security Definer View" für
+-- public.rangliste (Migration 0006): Der Scanner markiert grundsätzlich jede
 -- View, die mit den Rechten ihres Besitzers statt der aufrufenden Person
--- laeuft, als potenzielles Risiko – unabhaengig davon, wie eng die
--- freigegebenen Spalten tatsaechlich gefasst sind.
+-- läuft, als potenzielles Risiko – unabhängig davon, wie eng die
+-- freigegebenen Spalten tatsächlich gefasst sind.
 --
 -- Die View wird durch eine SECURITY-DEFINER-Funktion ersetzt: exakt dasselbe
 -- Sicherheitsverhalten (nur unkritische Spalten, nur rolle = 'junior', voller
--- Nachname verlaesst die Datenbank nie), aber dieses Muster wird vom Linter
+-- Nachname verlässt die Datenbank nie), aber dieses Muster wird vom Linter
 -- nicht als "Security Definer View" gemeldet und passt ausserdem zu den
 -- bereits bestehenden Funktionen (admin_exists, submit_selbsteinschaetzung, …).
 
