@@ -119,6 +119,15 @@ export type RanglisteEintrag = {
   team_name: string | null;
 };
 
+// Zeile aus der public.team_rangliste()-Funktion: Gesamtpunktzahl pro Team
+// (Summe aller Junioren des Teams), optional nach Altersgruppe gefiltert.
+export type TeamRanglisteEintrag = {
+  team_id: string;
+  team_name: string;
+  altersgruppe: Altersgruppe;
+  punkte_total: number;
+};
+
 // Minimales Database-Schema für den typisierten Supabase-Client, im gleichen
 // Format wie von `supabase gen types typescript` generiert (Tables/Views/
 // Functions je Tabelle mit Row/Insert/Update/Relationships).
@@ -187,6 +196,10 @@ export type Database = {
       rangliste: {
         Args: { p_team_id: string | null };
         Returns: RanglisteEintrag[];
+      };
+      team_rangliste: {
+        Args: { p_altersgruppe: Altersgruppe | null };
+        Returns: TeamRanglisteEintrag[];
       };
       current_user_role: {
         Args: Record<PropertyKey, never>;

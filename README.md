@@ -54,13 +54,13 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0009) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0010) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
    Storage-Bucket `team-logos` für den Vereinslogo-Upload, 0006 die Trennung von Vorname/Nachname,
    0007 die `rangliste()`-Funktion, 0008 Seed-Übungen für Kondition/Schnelligkeit, 0009 Seed-Übungen
-   für Schuss/Technik.
+   für Schuss/Technik, 0010 die `team_rangliste()`-Funktion.
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -224,6 +224,14 @@ Da hier zum ersten Mal echte Punktevergabe hinzukommt, wurde der Schreibzugriff 
   Supabase-Security-Linter-Hinweises "Security Definer View" in eine Funktion umgewandelt (gleiches
   Sicherheitsverhalten, aber kein Linter-Fehlalarm mehr – passt ausserdem zum bereits etablierten
   Muster von `admin_exists()`/`submit_selbsteinschaetzung()`).
+- **Team-Rangliste** (zweiter Tab "Teams" in derselben Karte): zeigt die Gesamtpunktzahl pro Team
+  (Summe aller Junioren des Teams), mit einem Dropdown-Filter nach Altersgruppe (U9/U12/U15/U18 —
+  "Alle Altersgruppen" zeigt alle Teams gemischt, mit Altersgruppen-Tag pro Zeile). Sortiert nach
+  Gesamtpunktzahl absteigend, das eigene Team ist hervorgehoben ("(Dein Team)"). Serverseitig über
+  die Funktion `public.team_rangliste(p_altersgruppe)` (Migration 0010) berechnet — ebenfalls
+  SECURITY DEFINER, da die Summenbildung über alle Junioren eines Teams die normalen RLS-Policies
+  von `users` umgehen muss; zurückgegeben werden aber ausschliesslich Team-Stammdaten und eine
+  aggregierte Summe, keine einzelnen Junioren-Daten.
 
 ## Gamification-Engine (Phase 4)
 
