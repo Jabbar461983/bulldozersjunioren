@@ -56,14 +56,14 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0011) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0012) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
    Storage-Bucket `team-logos` für den Vereinslogo-Upload, 0006 die Trennung von Vorname/Nachname,
    0007 die `rangliste()`-Funktion, 0008 Seed-Übungen für Kondition/Schnelligkeit, 0009 Seed-Übungen
-   für Schuss/Technik, 0010 die `team_rangliste()`-Funktion, 0011 das Freundeschallenge-Schema
-   (siehe Abschnitt "Freundeschallenges" weiter unten).
+   für Schuss/Technik, 0010 die `team_rangliste()`-Funktion, 0011 das Freundeschallenge-Schema,
+   0012 die Freundeschallenge-Badges (siehe Abschnitt "Freundeschallenges" weiter unten).
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -272,7 +272,7 @@ Streak ohne neue Aktivität stur den alten Wert zeigen — deshalb prüft das Fr
 viel Zeit vergangen ist, und zeigt in dem Fall 0 an (Anzeige-Detail, keine Sicherheitsfrage: die
 nächste echte Einschätzung berechnet ohnehin serverseitig neu).
 
-### Badges (27, datengetrieben)
+### Badges (31, datengetrieben)
 
 `public.badges` ist ein Konfigurationskatalog (`kriterium_typ` + `kriterium_wert`), keine
 hart codierte Logik — weitere Badges lassen sich per `INSERT` ergänzen:
@@ -284,9 +284,15 @@ hart codierte Logik — weitere Badges lassen sich per `INSERT` ergänzen:
 | `streak_wochen` | wöchentlicher Streak ≥ X (4) | 1 |
 | `level` | Level ≥ X (5/10/15/20) | 4 |
 | `allrounder` | mindestens 1 "geschafft" in allen 6 Kategorien | 1 |
+| `freundeschallenge_erfolgreich` | X erfolgreich abgeschlossene Freundeschallenges (3/5/10) | 3 |
+| `freundeschallenge_teamplayer` | 5 erfolgreiche Freundeschallenges mit jeweils unterschiedlichen Gegnern | 1 |
 
 `pruefe_und_vergib_badges()` wertet nach jeder Einschätzung alle noch nicht erreichten Badges
-generisch anhand von `kriterium_typ` aus und vergibt neu erreichte sofort.
+generisch anhand von `kriterium_typ` aus und vergibt neu erreichte sofort. Die beiden
+Freundeschallenge-Kriterien kamen mit Migration 0012 dazu; dabei wurde auch die Reihenfolge in
+`submit_selbsteinschaetzung()` korrigiert, sodass eine Einschätzung, die eine Freundeschallenge im
+selben Aufruf erfolgreich abschliesst (inkl. Extrapunkte), bereits denselben Aufruf für
+Level-Aufstieg und neue Badges berücksichtigt.
 
 ### Junior-Profilseite (`/junior/profil`)
 
@@ -447,6 +453,10 @@ und `src/pages/JuniorFreundeschallenge.tsx` (`/junior/freundeschallenge`, verlin
 - **Sichtbarkeit:** `meine_freundeschallengen()` liefert (wie `rangliste()`) nur Vorname +
   Nachname-Initiale der Gegenperson; die Auswahl möglicher Herausforderungspartner beschränkt sich
   auf das eigene Team (wiederverwendet `rangliste(p_team_id)`).
+- **Badges (Migration 0012):** "Freundeschallenge-Neuling/-Ass/-Meister" für 3/5/10 erfolgreich
+  abgeschlossene Freundeschallenges sowie "Teamplayer" für 5 erfolgreiche Freundeschallenges mit
+  jeweils unterschiedlichen Gegnern (`kriterium_typ` `freundeschallenge_erfolgreich` bzw.
+  `freundeschallenge_teamplayer`, datengetrieben wie der restliche Badge-Katalog).
 
 ## Bekannte Grenzen dieser Phase
 
