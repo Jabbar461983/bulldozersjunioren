@@ -9,6 +9,7 @@ import { JuniorHome } from './pages/JuniorHome';
 import { JuniorUebungDetail } from './pages/JuniorUebungDetail';
 import { JuniorVerlauf } from './pages/JuniorVerlauf';
 import { JuniorProfil } from './pages/JuniorProfil';
+import { JuniorFreundeschallenge } from './pages/JuniorFreundeschallenge';
 import { TrainerHome } from './pages/TrainerHome';
 import { AdminHome } from './pages/AdminHome';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -64,6 +65,17 @@ function App() {
                 <ProtectedRoute>
                   <RoleRoute allowed={['junior']}>
                     <JuniorProfil />
+                  </RoleRoute>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/junior/freundeschallenge"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute allowed={['junior']}>
+                    <JuniorFreundeschallenge />
                   </RoleRoute>
                 </ProtectedRoute>
               }

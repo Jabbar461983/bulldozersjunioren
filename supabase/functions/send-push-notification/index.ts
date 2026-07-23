@@ -1,13 +1,17 @@
-// Supabase Edge Function (Deno): sendet eine Web-Push-Benachrichtigung an
-// alle registrierten Geräte des AUFRUFENDEN Nutzers.
+// Supabase Edge Function (Deno): sendet eine Web-Push-Benachrichtigung.
 //
-// Wird ausschliesslich für die beiden in Phase 4 spezifizierten Ereignisse
-// aufgerufen: neuer Badge erreicht, Level-Aufstieg. Keine weiteren Trigger
-// (z. B. Trainingserinnerungen) in dieser Phase.
+// Ohne target_user_id: an alle registrierten Geräte des AUFRUFENDEN Nutzers
+// (neuer Badge, Level-Aufstieg, Freundeschallenge-Ereignisse in eigener Sache).
+// Mit target_user_id: an die Geräte eines ANDEREN Nutzers – ausschliesslich für
+// Freundeschallenge-Benachrichtigungen (z. B. "du wurdest herausgefordert"), und
+// nur, wenn zwischen Aufrufer und Ziel tatsächlich eine Freundeschallenge-Zeile
+// existiert (siehe Prüfung weiter unten), damit dieser Pfad nicht für beliebigen
+// Spam an fremde Nutzer missbraucht werden kann.
 //
 // Benötigte Secrets (per `supabase secrets set` zu setzen):
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (z. B. "mailto:you@example.com")
-// SUPABASE_URL und SUPABASE_ANON_KEY sind in der Edge-Runtime bereits vorhanden.
+// SUPABASE_URL, SUPABASE_ANON_KEY und SUPABASE_SERVICE_ROLE_KEY sind in der
+// Edge-Runtime bereits vorhanden.
 //
 // Generieren der VAPID-Schlüssel lokal: `npx web-push generate-vapid-keys`
 
@@ -17,6 +21,7 @@ import webpush from 'npm:web-push@3';
 interface RequestBody {
   title: string;
   body: string;
+  target_user_id?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -53,15 +58,54 @@ Deno.serve(async (req: Request) => {
 
   // Client mit dem JWT des Aufrufers: RLS beschränkt die Abfrage automatisch
   // auf dessen eigene push_subscriptions-Zeilen (siehe Migration 0004).
-  const supabase = createClient(
+  const callerClient = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_ANON_KEY')!,
     { global: { headers: { Authorization: authHeader } } }
   );
 
-  const { data: subscriptions, error } = await supabase
-    .from('push_subscriptions')
-    .select('id, endpoint, p256dh, auth');
+  let subscriptionsQuery = callerClient.from('push_subscriptions').select('id, endpoint, p256dh, auth');
+  let deleteClient = callerClient;
+
+  if (payload.target_user_id) {
+    const {
+      data: { user: caller },
+    } = await callerClient.auth.getUser();
+    if (!caller) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    // Service-Role-Client, um RLS gezielt für den Freundeschallenge-Fall zu
+    // umgehen (das Ziel ist ein ANDERER Nutzer als der Aufrufer).
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    const { data: beziehung } = await serviceClient
+      .from('freundeschallenges')
+      .select('id')
+      .or(
+        `and(ersteller_id.eq.${caller.id},empfaenger_id.eq.${payload.target_user_id}),` +
+          `and(ersteller_id.eq.${payload.target_user_id},empfaenger_id.eq.${caller.id})`
+      )
+      .limit(1)
+      .maybeSingle();
+
+    if (!beziehung) {
+      return new Response('Keine Freundeschallenge zwischen Aufrufer und Ziel gefunden.', {
+        status: 403,
+      });
+    }
+
+    subscriptionsQuery = serviceClient
+      .from('push_subscriptions')
+      .select('id, endpoint, p256dh, auth')
+      .eq('user_id', payload.target_user_id);
+    deleteClient = serviceClient;
+  }
+
+  const { data: subscriptions, error } = await subscriptionsQuery;
 
   if (error) {
     return new Response(`Konnte Abonnements nicht laden: ${error.message}`, { status: 500 });
@@ -84,7 +128,7 @@ Deno.serve(async (req: Request) => {
         // gelöscht) -> aufräumen, damit künftige Sends nicht erneut fehlschlagen.
         const status = (err as { statusCode?: number }).statusCode;
         if (status === 404 || status === 410) {
-          await supabase.from('push_subscriptions').delete().eq('id', sub.id);
+          await deleteClient.from('push_subscriptions').delete().eq('id', sub.id);
         }
         throw err;
       }

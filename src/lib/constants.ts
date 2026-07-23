@@ -1,4 +1,4 @@
-import type { Altersgruppe, UebungKategorie } from '../types/database';
+import type { Altersgruppe, FreundeschallengeStatus, UebungKategorie } from '../types/database';
 
 export const ALTERSGRUPPEN: Altersgruppe[] = ['U9', 'U12', 'U15', 'U18'];
 
@@ -30,4 +30,12 @@ export const KATEGORIE_ICONS: Record<UebungKategorie, string> = {
   koordination: '🤹',
   kondition: '🏃',
   schnelligkeit: '⚡',
+};
+
+export const FREUNDESCHALLENGE_STATUS_LABELS: Record<FreundeschallengeStatus, string> = {
+  angefragt: 'Angefragt',
+  aktiv: 'Läuft',
+  erfolgreich: 'Erfolgreich',
+  gescheitert: 'Gescheitert',
+  abgelehnt: 'Abgelehnt',
 };

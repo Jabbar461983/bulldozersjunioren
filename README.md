@@ -9,9 +9,11 @@ Zuhause-Trainieren, Selbsteinschätzung und Ranglisten zum Vergleichen mit dem T
 **Phase 4:** Gamification-Engine — Punkte, Level, tägliche/wöchentliche Streaks, 27 Badges und
 Web-Push-Benachrichtigungen.
 **Phase 6:** Comic-artiges Design, Vereins-Branding (Logo + Farben) und Maskottchen "Pucky".
-**Phase 7 (dieses Repo-Stadium):** Push-Notifications abgerundet — Berechtigungs-Flow beim
-ersten Login und In-App-Fallback-Benachrichtigung (Toast). Ranglisten (Phase 5) folgen in einer
-späteren Iteration.
+**Phase 7:** Push-Notifications abgerundet — Berechtigungs-Flow beim ersten Login und
+In-App-Fallback-Benachrichtigung (Toast).
+**Phase 8 (dieses Repo-Stadium):** Freundeschallenges — ein Junior fordert einen anderen heraus,
+3 Tage in Folge dieselbe Kategorie, Extrapunkte bei Erfolg (admin-konfigurierbar), Push-Benachrichtigung
+bei jedem Ereignis.
 
 ## Tech-Stack
 
@@ -54,13 +56,14 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0010) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0011) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
    Storage-Bucket `team-logos` für den Vereinslogo-Upload, 0006 die Trennung von Vorname/Nachname,
    0007 die `rangliste()`-Funktion, 0008 Seed-Übungen für Kondition/Schnelligkeit, 0009 Seed-Übungen
-   für Schuss/Technik, 0010 die `team_rangliste()`-Funktion.
+   für Schuss/Technik, 0010 die `team_rangliste()`-Funktion, 0011 das Freundeschallenge-Schema
+   (siehe Abschnitt "Freundeschallenges" weiter unten).
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -408,6 +411,43 @@ der Toast läuft immer, das eigentliche Web Push (`sendeGamificationPush`) läuf
 zusätzlich für den Fall, dass die App gerade geschlossen/im Hintergrund ist. Es gibt weiterhin
 bewusst keine weiteren Trigger (keine Trainingserinnerungen, keine Ranglisten-Änderungen).
 
+## Freundeschallenges (Phase 8)
+
+Ein Junior kann einen anderen Junior aus dem eigenen Team herausfordern: In einer gewählten
+Kategorie (Schuss, Technik, …) muss danach an **3 aufeinanderfolgenden Tagen** je eine Übung dieser
+Kategorie "geschafft" eingeschätzt werden. Umgesetzt in `supabase/migrations/0011_freundeschallenge.sql`
+und `src/pages/JuniorFreundeschallenge.tsx` (`/junior/freundeschallenge`, verlinkt von `/junior`).
+
+- **Anfrage & Annahme:** `freundeschallenge_anfragen(p_empfaenger_id, p_kategorie)` legt die Anfrage
+  an, `freundeschallenge_antworten(p_challenge_id, p_annehmen)` nimmt sie an (Start = heute) oder
+  lehnt sie ab. Beide sind SECURITY-DEFINER-Funktionen, die `auth.uid()` fest an Ersteller/Empfänger
+  binden.
+- **Nur eine aktive Challenge pro Junior:** `freundeschallenge_anfragen()` prüft serverseitig, ob
+  Ersteller **oder** Empfänger bereits eine Challenge im Status `angefragt`/`aktiv` haben, und bricht
+  sonst mit der Fehlermeldung "Aktuell schon eine Freundeschallenge am Laufen." ab – das Frontend
+  zeigt diese Meldung unverändert im Fehlerbereich an.
+- **Fortschritt & Scheitern:** `submit_selbsteinschaetzung()` ruft nach jeder Einschätzung
+  `aktualisiere_freundeschallenge_bei_einschaetzung()` auf: Bei "geschafft" in der passenden
+  Kategorie zählt der Tag für die jeweilige Person (mehrfache Einschätzungen am selben Tag zählen
+  nur einmal), bei "nicht geschafft" endet die Challenge sofort ohne Punkte. Lässt eine Person einen
+  Tag komplett verstreichen, ohne die Übung einzuschätzen, erkennt `freundeschallenge_ablaufen_lassen()`
+  das lazy beim nächsten Aufruf einer Freundeschallenge-Funktion (kein Cron-Job nötig) und beendet die
+  Challenge ebenfalls ohne Punkte.
+- **Erfolg & Extrapunkte:** Schaffen beide Personen alle 3 Tage, wird die Challenge auf
+  "erfolgreich" gesetzt und beide erhalten dieselben Extrapunkte gutgeschrieben. Die Höhe legt der
+  Admin im Admin-Bereich fest (Karte "Freundeschallenge", `FreundeschallengeKonfigurationCard`, liest/
+  schreibt die Singleton-Tabelle `freundeschallenge_konfiguration.extra_punkte`, Default 100).
+- **Push-Benachrichtigungen:** Jedes Ereignis (neue Anfrage, Annahme/Ablehnung, Erfolg, Scheitern)
+  löst eine Push-Benachrichtigung an die jeweils andere Person aus (`sendeFreundeschallengePush()` in
+  `src/lib/push.ts`). Da `send-push-notification` bisher nur an die eigenen Geräte des Aufrufers
+  senden konnte, akzeptiert die Edge Function jetzt zusätzlich ein `target_user_id`-Feld: Mit
+  Service-Role-Key werden dann die Abos der Zielperson geladen – aber nur, nachdem serverseitig
+  geprüft wurde, dass zwischen Aufrufer und Ziel überhaupt eine `freundeschallenges`-Zeile existiert
+  (verhindert Missbrauch als beliebiger Push-Spam-Versand an fremde Nutzer).
+- **Sichtbarkeit:** `meine_freundeschallengen()` liefert (wie `rangliste()`) nur Vorname +
+  Nachname-Initiale der Gegenperson; die Auswahl möglicher Herausforderungspartner beschränkt sich
+  auf das eigene Team (wiederverwendet `rangliste(p_team_id)`).
+
 ## Bekannte Grenzen dieser Phase
 
 - Ranglisten (Team-/Altersgruppen-Vergleich) sind noch nicht umgesetzt.
@@ -420,3 +460,6 @@ bewusst keine weiteren Trigger (keine Trainingserinnerungen, keine Ranglisten-Ä
   Primär-/Sekundärfarbe werden manuell eingegeben.
 - Login-/Register-Screen zeigen bewusst das generische App-Branding statt Team-Logo/-Farben, da vor
   der Anmeldung noch kein Team bekannt ist (die App unterstützt mehrere Teams/Vereine gleichzeitig).
+- Freundeschallenges lassen sich aktuell nur an Junioren aus dem eigenen Team schicken (kein
+  teamübergreifendes Herausfordern) und eine offene Anfrage kann vom Ersteller nicht zurückgezogen
+  werden — sie läuft weiter, bis Empfänger annimmt/ablehnt oder sie durch Zeitablauf scheitert.

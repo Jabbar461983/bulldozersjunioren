@@ -88,6 +88,54 @@ export type PunkteKonfiguration = {
   basis_punkte_pro_uebung: number;
 };
 
+export type FreundeschallengeStatus =
+  | 'angefragt'
+  | 'aktiv'
+  | 'erfolgreich'
+  | 'gescheitert'
+  | 'abgelehnt';
+
+export type Freundeschallenge = {
+  id: string;
+  kategorie: UebungKategorie;
+  ersteller_id: string;
+  empfaenger_id: string;
+  status: FreundeschallengeStatus;
+  start_datum: string | null;
+  ersteller_tage: number;
+  empfaenger_tage: number;
+  ersteller_letzter_tag: string | null;
+  empfaenger_letzter_tag: string | null;
+  punkte_vergeben: number;
+  created_at: string;
+  entschieden_am: string | null;
+  abgeschlossen_am: string | null;
+};
+
+export type FreundeschallengeKonfiguration = {
+  id: number;
+  extra_punkte: number;
+};
+
+// Zeile aus public.meine_freundeschallengen(): bereits um den Anzeigenamen
+// des Gegners angereichert (Vorname + Nachname-Initiale, gleiches
+// Datenschutz-Muster wie bei RanglisteEintrag) und relativ zum aufrufenden
+// Junior aufgelöst (meine_tage/gegner_tage statt ersteller_tage/empfaenger_tage).
+export type MeineFreundeschallenge = {
+  id: string;
+  kategorie: UebungKategorie;
+  status: FreundeschallengeStatus;
+  bin_ich_ersteller: boolean;
+  gegner_id: string;
+  gegner_vorname: string;
+  gegner_nachname_initiale: string | null;
+  meine_tage: number;
+  gegner_tage: number;
+  start_datum: string | null;
+  punkte_vergeben: number;
+  created_at: string;
+};
+
 export type PushSubscriptionRow = {
   id: string;
   user_id: string;
@@ -105,6 +153,14 @@ export type SelbsteinschaetzungErgebnis = {
   level_aufstieg: boolean;
   neues_level: number;
   neue_badges: Badge[];
+  // Freundeschallenge (Phase 8): gesetzt, wenn diese Einschätzung eine laufende
+  // Freundeschallenge in derselben Kategorie abgeschlossen hat (erfolgreich
+  // oder gescheitert) – sonst überall null.
+  freundeschallenge_status: FreundeschallengeStatus | null;
+  freundeschallenge_gegner_id: string | null;
+  freundeschallenge_gegner_vorname: string | null;
+  freundeschallenge_gegner_nachname_initiale: string | null;
+  freundeschallenge_punkte: number | null;
 };
 
 // Zeile aus der public.rangliste()-Funktion: bewusst nur unkritische Felder,
@@ -185,6 +241,19 @@ export type Database = {
         Update: Partial<PushSubscriptionRow>;
         Relationships: [];
       };
+      freundeschallenge_konfiguration: {
+        Row: FreundeschallengeKonfiguration;
+        Insert: Partial<FreundeschallengeKonfiguration>;
+        Update: Partial<FreundeschallengeKonfiguration>;
+        Relationships: [];
+      };
+      freundeschallenges: {
+        Row: Freundeschallenge;
+        Insert: Partial<Freundeschallenge> &
+          Pick<Freundeschallenge, 'kategorie' | 'ersteller_id' | 'empfaenger_id'>;
+        Update: Partial<Freundeschallenge>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
 
@@ -216,6 +285,18 @@ export type Database = {
           p_gefuehl_sterne: number | null;
         };
         Returns: SelbsteinschaetzungErgebnis;
+      };
+      freundeschallenge_anfragen: {
+        Args: { p_empfaenger_id: string; p_kategorie: UebungKategorie };
+        Returns: Freundeschallenge;
+      };
+      freundeschallenge_antworten: {
+        Args: { p_challenge_id: string; p_annehmen: boolean };
+        Returns: Freundeschallenge;
+      };
+      meine_freundeschallengen: {
+        Args: Record<PropertyKey, never>;
+        Returns: MeineFreundeschallenge[];
       };
     };
   };
