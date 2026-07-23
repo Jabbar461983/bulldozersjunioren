@@ -419,7 +419,8 @@ bewusst keine weiteren Trigger (keine Trainingserinnerungen, keine Ranglisten-Ä
 
 ## Freundeschallenges (Phase 8)
 
-Ein Junior kann einen anderen Junior aus dem eigenen Team herausfordern: In einer gewählten
+Ein Junior kann jeden anderen Junior herausfordern — teamübergreifend, nicht nur aus dem eigenen
+Team. In einer gewählten
 Kategorie (Schuss, Technik, …) muss danach an **3 aufeinanderfolgenden Tagen** je eine Übung dieser
 Kategorie "geschafft" eingeschätzt werden. Umgesetzt in `supabase/migrations/0011_freundeschallenge.sql`
 und `src/pages/JuniorFreundeschallenge.tsx` (`/junior/freundeschallenge`, verlinkt von `/junior`).
@@ -451,8 +452,11 @@ und `src/pages/JuniorFreundeschallenge.tsx` (`/junior/freundeschallenge`, verlin
   geprüft wurde, dass zwischen Aufrufer und Ziel überhaupt eine `freundeschallenges`-Zeile existiert
   (verhindert Missbrauch als beliebiger Push-Spam-Versand an fremde Nutzer).
 - **Sichtbarkeit:** `meine_freundeschallengen()` liefert (wie `rangliste()`) nur Vorname +
-  Nachname-Initiale der Gegenperson; die Auswahl möglicher Herausforderungspartner beschränkt sich
-  auf das eigene Team (wiederverwendet `rangliste(p_team_id)`).
+  Nachname-Initiale der Gegenperson. Die Auswahl möglicher Herausforderungspartner lädt
+  `rangliste(p_team_id: null)` — also alle Junioren aller Teams —, zeigt dabei aber zusätzlich den
+  Teamnamen an, da Vorname + Initiale allein über Teams hinweg nicht mehr eindeutig sein muss.
+  `freundeschallenge_anfragen()` prüfte ohnehin nie auf gleiches Team (nur `rolle = 'junior'`); die
+  Einschränkung bestand ausschliesslich im Auswahl-Dropdown des Frontends.
 - **Badges (Migration 0012):** "Freundeschallenge-Neuling/-Ass/-Meister" für 3/5/10 erfolgreich
   abgeschlossene Freundeschallenges sowie "Teamplayer" für 5 erfolgreiche Freundeschallenges mit
   jeweils unterschiedlichen Gegnern (`kriterium_typ` `freundeschallenge_erfolgreich` bzw.
@@ -470,6 +474,5 @@ und `src/pages/JuniorFreundeschallenge.tsx` (`/junior/freundeschallenge`, verlin
   Primär-/Sekundärfarbe werden manuell eingegeben.
 - Login-/Register-Screen zeigen bewusst das generische App-Branding statt Team-Logo/-Farben, da vor
   der Anmeldung noch kein Team bekannt ist (die App unterstützt mehrere Teams/Vereine gleichzeitig).
-- Freundeschallenges lassen sich aktuell nur an Junioren aus dem eigenen Team schicken (kein
-  teamübergreifendes Herausfordern) und eine offene Anfrage kann vom Ersteller nicht zurückgezogen
-  werden — sie läuft weiter, bis Empfänger annimmt/ablehnt oder sie durch Zeitablauf scheitert.
+- Eine offene Freundeschallenge-Anfrage kann vom Ersteller nicht zurückgezogen werden — sie läuft
+  weiter, bis der Empfänger annimmt/ablehnt oder sie durch Zeitablauf scheitert.
