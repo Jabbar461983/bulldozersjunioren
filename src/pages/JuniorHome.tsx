@@ -24,25 +24,26 @@ export function JuniorHome() {
   );
 
   const [uebungen, setUebungen] = useState<Uebung[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filterKategorie, setFilterKategorie] = useState<UebungKategorie | ''>('');
 
   const loadUebungen = useCallback(async () => {
+    if (!filterKategorie) {
+      setUebungen([]);
+      return;
+    }
     setLoading(true);
     setError(null);
 
     // RLS beschränkt das Ergebnis bereits automatisch auf die Altersgruppe
     // des eigenen Teams (siehe uebungen_select_own_altersgruppe-Policy).
-    let query = supabase
+    const { data, error } = await supabase
       .from('uebungen')
       .select('*')
-      .order('kategorie', { ascending: true })
+      .eq('kategorie', filterKategorie)
       .order('titel', { ascending: true });
 
-    if (filterKategorie) query = query.eq('kategorie', filterKategorie);
-
-    const { data, error } = await query;
     if (error) setError(error.message);
     else setUebungen(data ?? []);
     setLoading(false);
@@ -75,10 +76,16 @@ export function JuniorHome() {
           Level {fortschritt.level + 1}
         </p>
         <span className="streak-badge">🔥 {tagesStreak} Tage in Folge</span>
-        <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
-          <Link to="/junior/profil">Mein Profil & Badges →</Link>
-          <Link to="/junior/verlauf">Mein Verlauf →</Link>
-          <Link to="/junior/freundeschallenge">🤝 Freundeschallenge →</Link>
+        <div className="level-actions">
+          <Link to="/junior/profil" className="btn-level">
+            🏅 Mein Profil & Badges
+          </Link>
+          <Link to="/junior/verlauf" className="btn-level">
+            📜 Mein Verlauf
+          </Link>
+          <Link to="/junior/freundeschallenge" className="btn-level">
+            🤝 Freundeschallenge
+          </Link>
         </div>
       </div>
 
@@ -93,35 +100,34 @@ export function JuniorHome() {
             marginBottom: 16,
           }}
         >
-          <h2 style={{ margin: 0 }}>Übungen</h2>
+          <h2 style={{ margin: 0 }}>Übung starten</h2>
         </div>
 
         {error && <div className="alert-error">{error}</div>}
 
-        <div className="filter-bar">
-          <div className="field">
-            <label htmlFor="filter-kategorie">Kategorie</label>
-            <select
-              id="filter-kategorie"
-              value={filterKategorie}
-              onChange={(e) => setFilterKategorie(e.target.value as UebungKategorie | '')}
+        <div className="kategorie-grid">
+          {KATEGORIEN.map((k) => (
+            <button
+              key={k}
+              type="button"
+              className={`btn-kategorie${filterKategorie === k ? ' btn-kategorie-active' : ''}`}
+              onClick={() => setFilterKategorie(filterKategorie === k ? '' : k)}
             >
-              <option value="">Alle Kategorien</option>
-              {KATEGORIEN.map((k) => (
-                <option key={k} value={k}>
-                  {KATEGORIE_LABELS[k]}
-                </option>
-              ))}
-            </select>
-          </div>
+              <span className="kategorie-icon">{KATEGORIE_ICONS[k]}</span>
+              {KATEGORIE_LABELS[k]}
+            </button>
+          ))}
         </div>
 
-        {loading && <p>Wird geladen …</p>}
-        {!loading && uebungen.length === 0 && (
+        {!filterKategorie && <p>Wähle eine Kategorie, um passende Übungen zu sehen.</p>}
+
+        {filterKategorie && loading && <p>Wird geladen …</p>}
+        {filterKategorie && !loading && uebungen.length === 0 && (
           <p>Keine Übungen für deine Altersgruppe gefunden.</p>
         )}
 
-        {!loading &&
+        {filterKategorie &&
+          !loading &&
           uebungen.map((u) => (
             <Link key={u.id} to={`/junior/uebungen/${u.id}`} className="touch-row">
               <span style={{ fontWeight: 700 }}>

@@ -39,6 +39,13 @@
   flex-shrink: 0;
 }
 
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -266,6 +273,48 @@
   min-width: 160px;
 }
 
+.kategorie-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.btn-kategorie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 64px;
+  padding: 10px 6px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--color-border);
+  transition: transform 0.12s ease;
+}
+
+.btn-kategorie .kategorie-icon {
+  margin-right: 0;
+}
+
+.btn-kategorie:active {
+  transform: scale(0.96);
+}
+
+.btn-kategorie-active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--color-primary) 60%, black);
+}
+
 .uebungen-table {
   width: 100%;
   border-collapse: collapse;
@@ -322,6 +371,34 @@
   border: 2px solid var(--color-border);
   font-weight: 700;
   font-size: 1rem;
+}
+
+.level-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.btn-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  box-shadow: 0 3px 0 var(--color-border);
+  transition: transform 0.12s ease;
+}
+
+.btn-level:active {
+  transform: scale(0.96);
 }
 
 .kategorie-icon {
