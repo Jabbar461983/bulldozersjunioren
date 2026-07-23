@@ -15,6 +15,7 @@ interface UebungFormProps {
 
 export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
   const { profile } = useAuth();
+  const isAdmin = profile?.rolle === 'admin';
 
   const [titel, setTitel] = useState(initial?.titel ?? '');
   const [beschreibung, setBeschreibung] = useState(initial?.beschreibung ?? '');
@@ -22,6 +23,7 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
   const [altersgruppen, setAltersgruppen] = useState<Altersgruppe[]>(
     initial?.altersgruppen ?? []
   );
+  const [punkte, setPunkte] = useState(initial?.punkte ?? 10);
   const [bildModus, setBildModus] = useState<BildModus>('url');
   const [bildUrl, setBildUrl] = useState(initial?.bild_url ?? '');
   const [bildFile, setBildFile] = useState<File | null>(null);
@@ -55,6 +57,10 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
       setError('Bitte mindestens eine Altersgruppe auswählen.');
       return;
     }
+    if (isAdmin && (!Number.isInteger(punkte) || punkte < 0)) {
+      setError('Bitte eine gültige Punktzahl (0 oder mehr) eingeben.');
+      return;
+    }
     if (!profile) {
       setError('Nicht angemeldet.');
       return;
@@ -76,6 +82,9 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
         kategorie,
         altersgruppen,
         bild_url: finalBildUrl,
+        // Nur Admins dürfen die Punktzahl setzen/ändern (serverseitig per
+        // Trigger erzwungen); ohne Admin-Rolle greift der DB-Standardwert.
+        ...(isAdmin ? { punkte } : {}),
       };
 
       if (initial) {
@@ -141,6 +150,24 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="field">
+          <label htmlFor="uebung-punkte">Punkte</label>
+          <input
+            id="uebung-punkte"
+            type="number"
+            min={0}
+            step={1}
+            value={punkte}
+            disabled={!isAdmin}
+            onChange={(e) => setPunkte(Number(e.target.value))}
+          />
+          {!isAdmin && (
+            <small style={{ color: 'var(--color-text-muted)' }}>
+              Nur Admins dürfen die Punktzahl festlegen.
+            </small>
+          )}
         </div>
 
         <div className="field">

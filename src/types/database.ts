@@ -52,6 +52,10 @@ export type Uebung = {
   kategorie: UebungKategorie;
   erstellt_von: string | null;
   altersgruppen: Altersgruppe[];
+  // Punkte, die ein Junior für eine erfolgreiche Selbsteinschätzung dieser
+  // Übung erhält. Individuell pro Übung durch einen Admin konfigurierbar,
+  // Default für neue Übungen: 10.
+  punkte: number;
   created_at: string;
 };
 

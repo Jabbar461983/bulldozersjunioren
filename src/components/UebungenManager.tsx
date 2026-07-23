@@ -154,6 +154,7 @@ export function UebungenManager() {
                   <th>Titel</th>
                   <th>Kategorie</th>
                   <th>Altersgruppen</th>
+                  <th>Punkte</th>
                   <th>Aktionen</th>
                 </tr>
               </thead>
@@ -172,6 +173,7 @@ export function UebungenManager() {
                         </span>
                       ))}
                     </td>
+                    <td>{u.punkte}</td>
                     <td>
                       {canManage(u) ? (
                         <div style={{ display: 'flex', gap: 8 }}>
