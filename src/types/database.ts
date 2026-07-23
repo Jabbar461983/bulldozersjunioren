@@ -120,7 +120,7 @@ export type RanglisteEintrag = {
 };
 
 // Zeile aus der public.team_rangliste()-Funktion: Gesamtpunktzahl pro Team
-// (Summe aller Junioren des Teams), optional nach Altersgruppe gefiltert.
+// (Summe aller Junioren des Teams), optional nach Übungs-Kategorie gefiltert.
 export type TeamRanglisteEintrag = {
   team_id: string;
   team_name: string;
@@ -198,7 +198,7 @@ export type Database = {
         Returns: RanglisteEintrag[];
       };
       team_rangliste: {
-        Args: { p_altersgruppe: Altersgruppe | null };
+        Args: { p_kategorie: UebungKategorie | null };
         Returns: TeamRanglisteEintrag[];
       };
       current_user_role: {
