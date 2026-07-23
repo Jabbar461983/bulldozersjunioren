@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
-import { ALTERSGRUPPEN } from '../lib/constants';
-import type { Altersgruppe, RanglisteEintrag, Team, TeamRanglisteEintrag } from '../types/database';
+import { KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
+import type { RanglisteEintrag, Team, TeamRanglisteEintrag, UebungKategorie } from '../types/database';
 
 type Ansicht = 'junioren' | 'teams';
 
@@ -15,7 +15,7 @@ export function RanglisteCard() {
   const [filterTeam, setFilterTeam] = useState('');
   const [eintraege, setEintraege] = useState<RanglisteEintrag[]>([]);
 
-  const [filterAltersgruppe, setFilterAltersgruppe] = useState<Altersgruppe | ''>('');
+  const [filterKategorie, setFilterKategorie] = useState<UebungKategorie | ''>('');
   const [teamEintraege, setTeamEintraege] = useState<TeamRanglisteEintrag[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -46,12 +46,12 @@ export function RanglisteCard() {
     setError(null);
 
     const { data, error } = await supabase.rpc('team_rangliste', {
-      p_altersgruppe: filterAltersgruppe || null,
+      p_kategorie: filterKategorie || null,
     });
     if (error) setError(error.message);
     else setTeamEintraege(data ?? []);
     setLoading(false);
-  }, [filterAltersgruppe]);
+  }, [filterKategorie]);
 
   useEffect(() => {
     if (ansicht === 'junioren') void loadRangliste();
@@ -134,16 +134,16 @@ export function RanglisteCard() {
         <>
           <div className="filter-bar">
             <div className="field">
-              <label htmlFor="rangliste-altersgruppe">Altersgruppe</label>
+              <label htmlFor="rangliste-kategorie">Kategorie</label>
               <select
-                id="rangliste-altersgruppe"
-                value={filterAltersgruppe}
-                onChange={(e) => setFilterAltersgruppe(e.target.value as Altersgruppe | '')}
+                id="rangliste-kategorie"
+                value={filterKategorie}
+                onChange={(e) => setFilterKategorie(e.target.value as UebungKategorie | '')}
               >
-                <option value="">Alle Altersgruppen</option>
-                {ALTERSGRUPPEN.map((a) => (
-                  <option key={a} value={a}>
-                    {a} Total
+                <option value="">Alle Kategorien</option>
+                {KATEGORIEN.map((k) => (
+                  <option key={k} value={k}>
+                    {KATEGORIE_LABELS[k]}
                   </option>
                 ))}
               </select>
@@ -166,7 +166,7 @@ export function RanglisteCard() {
                     {index + 1}. {eintrag.team_name}
                     {istEigenesTeam && ' (Dein Team)'}
                   </span>
-                  {!filterAltersgruppe && <span className="tag">{eintrag.altersgruppe}</span>}
+                  <span className="tag">{eintrag.altersgruppe}</span>
                   <span style={{ color: 'var(--color-text-muted)' }}>
                     {eintrag.punkte_total} Pkt.
                   </span>
