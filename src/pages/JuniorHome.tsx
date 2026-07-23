@@ -75,9 +75,10 @@ export function JuniorHome() {
           Level {fortschritt.level + 1}
         </p>
         <span className="streak-badge">🔥 {tagesStreak} Tage in Folge</span>
-        <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
+        <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
           <Link to="/junior/profil">Mein Profil & Badges →</Link>
           <Link to="/junior/verlauf">Mein Verlauf →</Link>
+          <Link to="/junior/freundeschallenge">🤝 Freundeschallenge →</Link>
         </div>
       </div>
 

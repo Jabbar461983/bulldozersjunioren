@@ -95,3 +95,20 @@ export async function sendeGamificationPush(payload: {
     console.warn('Push-Benachrichtigung konnte nicht gesendet werden:', err);
   }
 }
+
+// Freundeschallenges benachrichtigen immer die JEWEILS ANDERE Person (neue
+// Anfrage, Annahme/Ablehnung, Erfolg/Scheitern) – dafür akzeptiert die Edge
+// Function zusätzlich eine target_user_id (siehe dortige Prüfung, dass eine
+// Freundeschallenge zwischen Aufrufer und Ziel existieren muss).
+export async function sendeFreundeschallengePush(
+  targetUserId: string,
+  payload: { title: string; body: string }
+): Promise<void> {
+  try {
+    await supabase.functions.invoke('send-push-notification', {
+      body: { ...payload, target_user_id: targetUserId },
+    });
+  } catch (err) {
+    console.warn('Freundeschallenge-Push konnte nicht gesendet werden:', err);
+  }
+}

@@ -7,7 +7,7 @@ import { DashboardLayout } from '../components/DashboardLayout';
 import { SterneAuswahl } from '../components/SterneAuswahl';
 import { Maskottchen, type MaskottchenZustand } from '../components/Maskottchen';
 import { KATEGORIE_ICONS, KATEGORIE_LABELS } from '../lib/constants';
-import { sendeGamificationPush } from '../lib/push';
+import { sendeFreundeschallengePush, sendeGamificationPush } from '../lib/push';
 import type { Selbsteinschaetzung, Uebung } from '../types/database';
 
 const FREUDIG_SPRUECHE = ['Super gemacht!', 'Stark! Weiter so!', 'Das war top!', 'Klasse Leistung!'];
@@ -119,6 +119,41 @@ export function JuniorUebungDetail() {
           body: badge.name,
         });
       }
+      if (data.freundeschallenge_status === 'erfolgreich') {
+        const gegnerName = `${data.freundeschallenge_gegner_vorname} ${data.freundeschallenge_gegner_nachname_initiale}.`;
+        feierMeldungen.push(
+          `Freundeschallenge gegen ${gegnerName} geschafft! +${data.freundeschallenge_punkte} Punkte 🤝`
+        );
+        showToast({
+          icon: '🤝',
+          title: 'Freundeschallenge geschafft!',
+          body: `Gegen ${gegnerName} – +${data.freundeschallenge_punkte} Punkte.`,
+        });
+        void sendeGamificationPush({
+          title: 'Freundeschallenge geschafft! 🤝',
+          body: `Gegen ${gegnerName} – +${data.freundeschallenge_punkte} Punkte.`,
+        });
+        if (data.freundeschallenge_gegner_id) {
+          void sendeFreundeschallengePush(data.freundeschallenge_gegner_id, {
+            title: 'Freundeschallenge geschafft! 🤝',
+            body: `Ihr habt es gemeinsam geschafft – +${data.freundeschallenge_punkte} Punkte.`,
+          });
+        }
+      } else if (data.freundeschallenge_status === 'gescheitert') {
+        const gegnerName = `${data.freundeschallenge_gegner_vorname} ${data.freundeschallenge_gegner_nachname_initiale}.`;
+        showToast({
+          icon: '🤝',
+          title: 'Freundeschallenge beendet',
+          body: `Leider ohne Punkte – gegen ${gegnerName}.`,
+        });
+        if (data.freundeschallenge_gegner_id) {
+          void sendeFreundeschallengePush(data.freundeschallenge_gegner_id, {
+            title: 'Freundeschallenge beendet',
+            body: 'Leider ohne Punkte – nächstes Mal klappt’s wieder!',
+          });
+        }
+      }
+
       if (feierMeldungen.length > 0) setFeier(feierMeldungen.join(' '));
 
       setSterne(null);
