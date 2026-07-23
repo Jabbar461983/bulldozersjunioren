@@ -14,9 +14,11 @@ In-App-Fallback-Benachrichtigung (Toast).
 **Phase 8:** Freundeschallenges — ein Junior fordert einen anderen heraus, 3 Tage in Folge
 dieselbe Kategorie, Extrapunkte bei Erfolg (admin-konfigurierbar), Push-Benachrichtigung bei
 jedem Ereignis.
-**Phase 9 (dieses Repo-Stadium):** Team-Rangliste filtert nach Übungs-Kategorie statt
-Altersgruppe; jede Übung hat neu eine individuelle, admin-konfigurierbare Punktzahl (Standard 10
-für neue Übungen) statt des bisherigen globalen Basiswerts.
+**Phase 9:** Team-Rangliste filtert nach Übungs-Kategorie statt Altersgruppe; jede Übung hat neu
+eine individuelle, admin-konfigurierbare Punktzahl (Standard 10 für neue Übungen) statt des
+bisherigen globalen Basiswerts.
+**Phase 10 (dieses Repo-Stadium):** Nutzerverwaltung im Admin-Bereich — Admins können Junioren,
+Trainer und weitere Admins anlegen, bearbeiten (Name, Rolle, Team) und löschen.
 
 ## Tech-Stack
 
@@ -76,6 +78,10 @@ scripts/
 5. Für Web Push (Phase 4, optional): VAPID-Schlüssel generieren mit
    `npx web-push generate-vapid-keys`, dann die Edge Function deployen und die Secrets setzen
    (siehe Abschnitt "Web-Push-Benachrichtigungen" weiter unten).
+6. Für die Nutzerverwaltung (Phase 10, damit Admins neue Nutzer anlegen können): Edge Function
+   deployen (`supabase functions deploy admin-user-management`, siehe Abschnitt
+   "Nutzerverwaltung" weiter unten). Kein zusätzliches Secret nötig — `SUPABASE_SERVICE_ROLE_KEY`
+   steht in der Edge-Runtime bereits automatisch zur Verfügung.
 
 ### 3. Umgebungsvariablen
 
@@ -470,11 +476,39 @@ und `src/pages/JuniorFreundeschallenge.tsx` (`/junior/freundeschallenge`, verlin
   jeweils unterschiedlichen Gegnern (`kriterium_typ` `freundeschallenge_erfolgreich` bzw.
   `freundeschallenge_teamplayer`, datengetrieben wie der restliche Badge-Katalog).
 
+## Nutzerverwaltung (Phase 10)
+
+Admins sehen auf ihrer Startseite eine **Nutzerverwaltung**-Karte
+(`NutzerverwaltungManager`), über die sich Nutzer aller Rollen (Junior, Trainer, Admin) anlegen,
+bearbeiten und löschen lassen:
+
+- **Übersicht & Filter:** Tabelle aller Nutzer (Name, E-Mail, Rolle, Team), filterbar nach Rolle.
+- **Bearbeiten** (`NutzerForm`): Vorname, Nachname, Rolle und — sofern die Rolle Junior oder
+  Trainer ist — das Team lassen sich ändern. Das läuft über ein normales `update` auf
+  `public.users` und ist bereits durch die RLS-Policy `users_update_admin` (Migration 0001)
+  abgesichert; es braucht dafür keine eigene Server-Logik. Die E-Mail-Adresse ist hier bewusst
+  nicht editierbar, da sie zusätzlich der Login-E-Mail in `auth.users` entsprechen muss.
+- **Anlegen & Löschen** (`supabase/functions/admin-user-management`): Ein neues Konto braucht
+  einen `auth.users`-Eintrag (Passwort, E-Mail-Bestätigung überspringen), und Löschen muss
+  denselben Eintrag entfernen (`public.users` hängt per `on delete cascade` daran) — beides ist
+  nur mit dem Service-Role-Key möglich, den der Client nie zu Gesicht bekommt. Deshalb läuft das
+  über eine Edge Function, die zunächst mit dem JWT des Aufrufers prüft, dass dieser tatsächlich
+  Admin ist (`current_user_role()`), und erst danach mit dem Service-Role-Key den privilegierten
+  Teil ausführt (`auth.admin.createUser()` bzw. `auth.admin.deleteUser()`).
+- Ein neu angelegter Admin wird nicht vom Bootstrap-Schutz aus Migration 0001
+  (`handle_new_user()` stuft eine zweite `admin`-Registrierung auf `junior` zurück) ausgebremst:
+  Die Edge Function setzt die gewünschte Rolle nach dem Anlegen gezielt noch einmal, weil der
+  Aufruf hier ja bereits als Admin verifiziert wurde.
+- **Sicherheitshinweise:** Ein Admin kann sein eigenes Konto nicht löschen (weder im Frontend
+  noch — als zweite Absicherung — in der Edge Function selbst), damit sich niemand versehentlich
+  selbst aus dem Admin-Bereich aussperrt. Löschen fragt zusätzlich über `ConfirmDialog` nach, da
+  es unwiderruflich ist und alle abhängigen Daten (Selbsteinschätzungen, Badges,
+  Freundeschallenges, Push-Abos) per Kaskade mitgelöscht werden.
+
 ## Bekannte Grenzen dieser Phase
 
 - Ranglisten (Team-/Altersgruppen-Vergleich) sind noch nicht umgesetzt.
 - Kalenderansicht des Verlaufs ist bewusst eine einfache Liste (kein echter Kalender).
-- Nutzerverwaltung (Admin) ist noch ein Platzhalter.
 - E-Mail-Templates, Passwort-Reset-UI und Profilbearbeitung sind noch nicht umgesetzt.
 - Web Push erfordert ein deploytes Supabase-Projekt mit Edge Functions + VAPID-Secrets; lokal ohne
   diese Konfiguration bleibt der Rest der App uneingeschränkt nutzbar.

@@ -6,6 +6,7 @@ import { ALTERSGRUPPEN } from '../lib/constants';
 import { UebungenManager } from '../components/UebungenManager';
 import { TeamBrandingForm } from '../components/TeamBrandingForm';
 import { FreundeschallengeKonfigurationCard } from '../components/FreundeschallengeKonfigurationCard';
+import { NutzerverwaltungManager } from '../components/NutzerverwaltungManager';
 
 export function AdminHome() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -137,10 +138,7 @@ export function AdminHome() {
 
       <FreundeschallengeKonfigurationCard />
 
-      <div className="card">
-        <h2>Nutzerverwaltung</h2>
-        <p>Hier erscheint bald die Verwaltung aller Nutzer.</p>
-      </div>
+      <NutzerverwaltungManager teams={teams} />
     </DashboardLayout>
   );
 }
