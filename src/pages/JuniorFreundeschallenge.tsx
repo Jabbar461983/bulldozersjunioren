@@ -13,7 +13,7 @@ export function JuniorFreundeschallenge() {
   const { showToast } = useToast();
 
   const [challenges, setChallenges] = useState<MeineFreundeschallenge[]>([]);
-  const [teamkollegen, setTeamkollegen] = useState<RanglisteEintrag[]>([]);
+  const [andereJunioren, setAndereJunioren] = useState<RanglisteEintrag[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,18 +28,18 @@ export function JuniorFreundeschallenge() {
     setLoading(true);
     setError(null);
 
-    const [challengesResult, kollegenResult] = await Promise.all([
+    // Herausfordern darf man Junioren aus allen Teams (nicht nur dem eigenen),
+    // daher rangliste() bewusst ohne Team-Filter (p_team_id: null) laden.
+    const [challengesResult, juniorenResult] = await Promise.all([
       supabase.rpc('meine_freundeschallengen'),
-      profile.team_id
-        ? supabase.rpc('rangliste', { p_team_id: profile.team_id })
-        : Promise.resolve({ data: [] as RanglisteEintrag[], error: null }),
+      supabase.rpc('rangliste', { p_team_id: null }),
     ]);
 
     if (challengesResult.error) setError(challengesResult.error.message);
     else setChallenges(challengesResult.data ?? []);
 
-    if (kollegenResult.error) setError(kollegenResult.error.message);
-    else setTeamkollegen((kollegenResult.data ?? []).filter((k) => k.id !== profile.id));
+    if (juniorenResult.error) setError(juniorenResult.error.message);
+    else setAndereJunioren((juniorenResult.data ?? []).filter((k) => k.id !== profile.id));
 
     setLoading(false);
   }, [profile]);
@@ -186,8 +186,8 @@ export function JuniorFreundeschallenge() {
       {!loading && !aktuelle && (
         <div className="card">
           <h2>Neue Freundeschallenge senden</h2>
-          {teamkollegen.length === 0 ? (
-            <p>Keine anderen Junioren in deinem Team gefunden.</p>
+          {andereJunioren.length === 0 ? (
+            <p>Keine anderen Junioren gefunden.</p>
           ) : (
             <form onSubmit={handleAnfragen}>
               <div className="field">
@@ -199,9 +199,10 @@ export function JuniorFreundeschallenge() {
                   onChange={(e) => setEmpfaengerId(e.target.value)}
                 >
                   <option value="">Bitte wählen …</option>
-                  {teamkollegen.map((k) => (
+                  {andereJunioren.map((k) => (
                     <option key={k.id} value={k.id}>
                       {k.vorname} {k.nachname_initiale}.
+                      {k.team_name ? ` (${k.team_name})` : ''}
                     </option>
                   ))}
                 </select>
