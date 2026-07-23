@@ -11,9 +11,12 @@ Web-Push-Benachrichtigungen.
 **Phase 6:** Comic-artiges Design, Vereins-Branding (Logo + Farben) und Maskottchen "Pucky".
 **Phase 7:** Push-Notifications abgerundet — Berechtigungs-Flow beim ersten Login und
 In-App-Fallback-Benachrichtigung (Toast).
-**Phase 8 (dieses Repo-Stadium):** Freundeschallenges — ein Junior fordert einen anderen heraus,
-3 Tage in Folge dieselbe Kategorie, Extrapunkte bei Erfolg (admin-konfigurierbar), Push-Benachrichtigung
-bei jedem Ereignis.
+**Phase 8:** Freundeschallenges — ein Junior fordert einen anderen heraus, 3 Tage in Folge
+dieselbe Kategorie, Extrapunkte bei Erfolg (admin-konfigurierbar), Push-Benachrichtigung bei
+jedem Ereignis.
+**Phase 9 (dieses Repo-Stadium):** Team-Rangliste filtert nach Übungs-Kategorie statt
+Altersgruppe; jede Übung hat neu eine individuelle, admin-konfigurierbare Punktzahl (Standard 10
+für neue Übungen) statt des bisherigen globalen Basiswerts.
 
 ## Tech-Stack
 
@@ -56,14 +59,17 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0012) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0014) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
    Storage-Bucket `team-logos` für den Vereinslogo-Upload, 0006 die Trennung von Vorname/Nachname,
    0007 die `rangliste()`-Funktion, 0008 Seed-Übungen für Kondition/Schnelligkeit, 0009 Seed-Übungen
    für Schuss/Technik, 0010 die `team_rangliste()`-Funktion, 0011 das Freundeschallenge-Schema,
-   0012 die Freundeschallenge-Badges (siehe Abschnitt "Freundeschallenges" weiter unten).
+   0012 die Freundeschallenge-Badges (siehe Abschnitt "Freundeschallenges" weiter unten), 0013
+   stellt `team_rangliste()` von Altersgruppen- auf Kategorie-Filterung um, 0014 ergänzt die
+   individuelle Punktzahl pro Übung (`uebungen.punkte`, Standard 10) inkl. Anpassung von
+   `submit_selbsteinschaetzung()`.
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -163,9 +169,10 @@ Siehe `supabase/migrations/0001_init.sql` für das vollständige Schema inkl. Ko
 Trainer und Admin sehen auf ihrer Startseite eine **Übungen**-Karte (`UebungenManager`):
 
 - **Erstellen/Bearbeiten** (`UebungForm`): Titel, Beschreibung, Kategorie (genau eine),
-  Altersgruppen (Mehrfachauswahl), Bild entweder als externe URL oder als Datei-Upload in den
-  Supabase-Storage-Bucket `uebung-bilder`. Das Feld `Video-URL` ist bewusst deaktiviert
-  ("Kommt in einer späteren Version") — Vorbereitung für eine spätere Phase.
+  Altersgruppen (Mehrfachauswahl), Punkte (Standard 10 bei neuer Übung, nur für Admins editierbar
+  — siehe Abschnitt "Punkte" unter Gamification-Engine), Bild entweder als externe URL oder als
+  Datei-Upload in den Supabase-Storage-Bucket `uebung-bilder`. Das Feld `Video-URL` ist bewusst
+  deaktiviert ("Kommt in einer späteren Version") — Vorbereitung für eine spätere Phase.
 - **Validierung:** Titel/Beschreibung sind Pflichtfelder (native HTML-Validierung), Kategorie
   und mindestens eine Altersgruppe müssen ausgewählt sein, bevor gespeichert werden kann.
 - **Filter:** Übersicht lässt sich nach Kategorie und Altersgruppe filtern, sortiert nach
@@ -192,7 +199,7 @@ Trainer und Admin sehen auf ihrer Startseite eine **Übungen**-Karte (`UebungenM
 - **Verlaufsansicht** (`/junior/verlauf`, `JuniorVerlauf`): alle bisherigen Selbsteinschätzungen
   des eigenen Kontos, neueste zuerst.
 - **Punktevergabe:** Bei "Geschafft = Ja" werden serverseitig Punkte auf `users.punkte_total`
-  gutgeschrieben (Basiswert konfigurierbar, siehe Phase 4).
+  gutgeschrieben (Punktzahl pro Übung individuell konfigurierbar, siehe Phase 4/9).
 
 ### Sicherheitshinweise (Phase 3)
 
@@ -244,9 +251,14 @@ validiert und gespeichert hat. Einziger Schreibpfad bleibt `submit_selbsteinscha
 
 ### Punkte
 
-Der Basiswert pro erfolgreich eingeschätzter Übung liegt in der Singleton-Tabelle
-`punkte_konfiguration.basis_punkte_pro_uebung` (Default 20) statt hart codiert in einer Funktion —
-kann direkt in der Supabase-Tabellenansicht angepasst werden, ohne Code/Migrationen anzufassen.
+Ursprünglich lag der Basiswert pro erfolgreich eingeschätzter Übung in der Singleton-Tabelle
+`punkte_konfiguration.basis_punkte_pro_uebung` (Default 20) und galt für alle Übungen gleich. Seit
+Phase 9 hat stattdessen **jede Übung ihre eigene Punktzahl** (`uebungen.punkte`, Default 10 für neu
+erstellte Übungen) — individuell im Admin-Bereich über `UebungForm` editierbar (siehe
+"Übungsverwaltung" oben). Nur Admins dürfen die Punktzahl setzen/ändern, serverseitig über einen
+Trigger auf `uebungen` erzwungen (Migration `0014_uebung_punkte.sql`); Trainer können ihre eigenen
+Übungen weiterhin erstellen/bearbeiten, aber nicht deren Punktzahl. `submit_selbsteinschaetzung()`
+liest diesen Wert direkt aus `uebungen.punkte` statt aus dem globalen Basiswert.
 
 ### Level
 
