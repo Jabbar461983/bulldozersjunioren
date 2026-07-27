@@ -180,16 +180,16 @@ export function JuniorUebungDetail() {
       if (data.freundeschallenge_status === 'erfolgreich') {
         const gegnerName = `${data.freundeschallenge_gegner_vorname} ${data.freundeschallenge_gegner_nachname_initiale}.`;
         feierMeldungen.push(
-          `Freundeschallenge gegen ${gegnerName} geschafft! +${data.freundeschallenge_punkte} Punkte 🤝`
+          `Freundeschallenge mit ${gegnerName} geschafft! +${data.freundeschallenge_punkte} Punkte 🤝`
         );
         showToast({
           icon: '🤝',
           title: 'Freundeschallenge geschafft!',
-          body: `Gegen ${gegnerName} – +${data.freundeschallenge_punkte} Punkte.`,
+          body: `Mit ${gegnerName} – +${data.freundeschallenge_punkte} Punkte.`,
         });
         void sendeGamificationPush({
           title: 'Freundeschallenge geschafft! 🤝',
-          body: `Gegen ${gegnerName} – +${data.freundeschallenge_punkte} Punkte.`,
+          body: `Mit ${gegnerName} – +${data.freundeschallenge_punkte} Punkte.`,
         });
         if (data.freundeschallenge_gegner_id) {
           void sendeFreundeschallengePush(data.freundeschallenge_gegner_id, {
@@ -202,7 +202,7 @@ export function JuniorUebungDetail() {
         showToast({
           icon: '🤝',
           title: 'Freundeschallenge beendet',
-          body: `Leider ohne Punkte – gegen ${gegnerName}.`,
+          body: `Leider ohne Punkte – mit ${gegnerName}.`,
         });
         if (data.freundeschallenge_gegner_id) {
           void sendeFreundeschallengePush(data.freundeschallenge_gegner_id, {
