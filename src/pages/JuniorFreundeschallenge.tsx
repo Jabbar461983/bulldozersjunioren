@@ -145,7 +145,7 @@ export function JuniorFreundeschallenge() {
               {KATEGORIE_LABELS[aktuelle.kategorie]}
             </span>
             <span>
-              gegen {aktuelle.gegner_vorname} {aktuelle.gegner_nachname_initiale}.
+              mit {aktuelle.gegner_vorname} {aktuelle.gegner_nachname_initiale}.
             </span>
             <span className="tag">{FREUNDESCHALLENGE_STATUS_LABELS[aktuelle.status]}</span>
           </div>
@@ -239,7 +239,7 @@ export function JuniorFreundeschallenge() {
                 {KATEGORIE_LABELS[c.kategorie]}
               </span>
               <span>
-                gegen {c.gegner_vorname} {c.gegner_nachname_initiale}.
+                mit {c.gegner_vorname} {c.gegner_nachname_initiale}.
               </span>
               <span className="tag">{FREUNDESCHALLENGE_STATUS_LABELS[c.status]}</span>
               {c.status === 'erfolgreich' && (
