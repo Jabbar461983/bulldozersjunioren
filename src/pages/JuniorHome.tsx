@@ -6,9 +6,12 @@ import { DashboardLayout } from '../components/DashboardLayout';
 import { Maskottchen } from '../components/Maskottchen';
 import { PushOnboarding } from '../components/PushOnboarding';
 import { RanglisteCard } from '../components/RanglisteCard';
+import { HerzenAuswahl } from '../components/HerzenAuswahl';
 import { KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import { effektiverTagesStreak, levelFortschritt } from '../lib/gamification';
-import type { Uebung, UebungKategorie } from '../types/database';
+import type { Uebung, UebungBeliebtheit, UebungKategorie } from '../types/database';
+
+const ANZAHL_KOMPAKT = 5;
 
 const BEGRUESSUNGEN = [
   'Bereit für dein Training?',
@@ -24,9 +27,11 @@ export function JuniorHome() {
   );
 
   const [uebungen, setUebungen] = useState<Uebung[]>([]);
+  const [beliebtheit, setBeliebtheit] = useState<Map<string, UebungBeliebtheit>>(new Map());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filterKategorie, setFilterKategorie] = useState<UebungKategorie | ''>('');
+  const [alleAnzeigen, setAlleAnzeigen] = useState(false);
 
   const loadUebungen = useCallback(async () => {
     if (!filterKategorie) {
@@ -38,20 +43,40 @@ export function JuniorHome() {
 
     // RLS beschränkt das Ergebnis bereits automatisch auf die Altersgruppe
     // des eigenen Teams (siehe uebungen_select_own_altersgruppe-Policy).
-    const { data, error } = await supabase
-      .from('uebungen')
-      .select('*')
-      .eq('kategorie', filterKategorie)
-      .order('titel', { ascending: true });
+    const [uebungenResult, beliebtheitResult] = await Promise.all([
+      supabase.from('uebungen').select('*').eq('kategorie', filterKategorie),
+      supabase.rpc('uebung_beliebtheit'),
+    ]);
 
-    if (error) setError(error.message);
-    else setUebungen(data ?? []);
+    if (uebungenResult.error) setError(uebungenResult.error.message);
+    else setUebungen(uebungenResult.data ?? []);
+
+    if (!beliebtheitResult.error) {
+      setBeliebtheit(new Map(beliebtheitResult.data?.map((b) => [b.uebung_id, b]) ?? []));
+    }
+
     setLoading(false);
   }, [filterKategorie]);
 
   useEffect(() => {
     void loadUebungen();
   }, [loadUebungen]);
+
+  useEffect(() => {
+    setAlleAnzeigen(false);
+  }, [filterKategorie]);
+
+  // Beliebteste Übung (meiste Herzen im Schnitt) zuoberst, unbewertete
+  // Übungen (kein Eintrag in der Map) zählen dabei als 0.
+  const sortierteUebungen = [...uebungen].sort((a, b) => {
+    const bDurchschnitt = beliebtheit.get(b.id)?.durchschnitt_herzen ?? 0;
+    const aDurchschnitt = beliebtheit.get(a.id)?.durchschnitt_herzen ?? 0;
+    if (bDurchschnitt !== aDurchschnitt) return bDurchschnitt - aDurchschnitt;
+    return a.titel.localeCompare(b.titel);
+  });
+  const sichtbareUebungen = alleAnzeigen
+    ? sortierteUebungen
+    : sortierteUebungen.slice(0, ANZAHL_KOMPAKT);
 
   const fortschritt = levelFortschritt(profile?.punkte_total ?? 0);
   const tagesStreak = profile
@@ -128,15 +153,39 @@ export function JuniorHome() {
 
         {filterKategorie &&
           !loading &&
-          uebungen.map((u) => (
-            <Link key={u.id} to={`/junior/uebungen/${u.id}`} className="touch-row">
-              <span style={{ fontWeight: 700 }}>
-                <span className="kategorie-icon">{KATEGORIE_ICONS[u.kategorie]}</span>
-                {u.titel}
-              </span>
-              <span className="tag">{KATEGORIE_LABELS[u.kategorie]}</span>
-            </Link>
-          ))}
+          sichtbareUebungen.map((u) => {
+            const eintrag = beliebtheit.get(u.id);
+            return (
+              <Link key={u.id} to={`/junior/uebungen/${u.id}`} className="touch-row">
+                <span style={{ fontWeight: 700 }}>
+                  <span className="kategorie-icon">{KATEGORIE_ICONS[u.kategorie]}</span>
+                  {u.titel}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <HerzenAuswahl
+                    value={eintrag ? Math.round(eintrag.durchschnitt_herzen) : 0}
+                    readOnly
+                    size={1}
+                  />
+                  {eintrag && (
+                    <small style={{ color: 'var(--color-text-muted)' }}>
+                      ({eintrag.durchschnitt_herzen} · {eintrag.anzahl_bewertungen})
+                    </small>
+                  )}
+                </span>
+              </Link>
+            );
+          })}
+
+        {filterKategorie && !loading && sortierteUebungen.length > ANZAHL_KOMPAKT && !alleAnzeigen && (
+          <button
+            className="btn-secondary"
+            style={{ marginTop: 12 }}
+            onClick={() => setAlleAnzeigen(true)}
+          >
+            Mehr anzeigen ({sortierteUebungen.length - ANZAHL_KOMPAKT} weitere)
+          </button>
+        )}
       </div>
     </DashboardLayout>
   );

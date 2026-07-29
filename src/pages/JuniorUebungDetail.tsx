@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { SterneAuswahl } from '../components/SterneAuswahl';
+import { HerzenAuswahl } from '../components/HerzenAuswahl';
 import { Maskottchen, type MaskottchenZustand } from '../components/Maskottchen';
 import { KATEGORIE_ICONS, KATEGORIE_LABELS } from '../lib/constants';
 import { sendeFreundeschallengePush, sendeGamificationPush } from '../lib/push';
@@ -43,12 +44,15 @@ export function JuniorUebungDetail() {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [feier, setFeier] = useState<string | null>(null);
 
+  const [meineBewertung, setMeineBewertung] = useState<number | null>(null);
+  const [bewertungSpeichern, setBewertungSpeichern] = useState(false);
+
   const load = useCallback(async () => {
     if (!id || !profile) return;
     setLoading(true);
     setError(null);
 
-    const [uebungResult, verlaufResult] = await Promise.all([
+    const [uebungResult, verlaufResult, bewertungResult] = await Promise.all([
       supabase.from('uebungen').select('*').eq('id', id).maybeSingle(),
       supabase
         .from('selbsteinschaetzungen')
@@ -56,6 +60,12 @@ export function JuniorUebungDetail() {
         .eq('uebung_id', id)
         .eq('junior_id', profile.id)
         .order('datum', { ascending: false }),
+      supabase
+        .from('uebung_bewertungen')
+        .select('*')
+        .eq('uebung_id', id)
+        .eq('junior_id', profile.id)
+        .maybeSingle(),
     ]);
 
     if (uebungResult.error) setError(uebungResult.error.message);
@@ -63,6 +73,8 @@ export function JuniorUebungDetail() {
 
     if (verlaufResult.error) setError(verlaufResult.error.message);
     else setVerlauf(verlaufResult.data ?? []);
+
+    if (!bewertungResult.error) setMeineBewertung(bewertungResult.data?.herzen ?? null);
 
     setLoading(false);
   }, [id, profile]);
@@ -184,6 +196,25 @@ export function JuniorUebungDetail() {
     void submitEinschaetzung(true, wert);
   }
 
+  async function handleBewertung(wert: number) {
+    if (!id) return;
+    const vorherigeBewertung = meineBewertung;
+    setMeineBewertung(wert);
+    setBewertungSpeichern(true);
+    try {
+      const { error } = await supabase.rpc('bewerte_uebung', {
+        p_uebung_id: id,
+        p_herzen: wert,
+      });
+      if (error) throw error;
+    } catch (err) {
+      setMeineBewertung(vorherigeBewertung);
+      setError(err instanceof Error ? err.message : 'Bewertung konnte nicht gespeichert werden.');
+    } finally {
+      setBewertungSpeichern(false);
+    }
+  }
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -267,6 +298,20 @@ export function JuniorUebungDetail() {
             )}
           </div>
         )}
+      </div>
+
+      <div className="card">
+        <h2>Wie cool findest du diese Übung?</h2>
+        <div className="field">
+          <HerzenAuswahl
+            value={meineBewertung}
+            onChange={(wert) => void handleBewertung(wert)}
+            readOnly={bewertungSpeichern}
+          />
+          {bewertungSpeichern && (
+            <small style={{ color: 'var(--color-text-muted)' }}>Wird gespeichert …</small>
+          )}
+        </div>
       </div>
 
       <div className="card">

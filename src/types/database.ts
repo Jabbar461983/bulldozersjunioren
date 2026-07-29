@@ -140,6 +140,29 @@ export type MeineFreundeschallenge = {
   created_at: string;
 };
 
+// Beliebtheits-Bewertung (Phase 10): ein Junior bewertet eine Übung mit 1-5
+// Herzen ("wie cool fandest du das?"), unabhängig von der täglichen
+// Selbsteinschätzung. Höchstens eine Zeile pro Junior+Übung (siehe
+// bewerte_uebung()), daher kein Verlauf wie bei Selbsteinschaetzung.
+export type UebungBewertung = {
+  id: string;
+  junior_id: string;
+  uebung_id: string;
+  herzen: number;
+  created_at: string;
+  updated_at: string;
+};
+
+// Zeile aus public.uebung_beliebtheit(): aggregierte Beliebtheit je Übung,
+// ohne Rückschluss auf einzelne Stimmen (gleiches Datenschutz-Muster wie
+// rangliste()). Grundlage für die Herzen-Anzeige und die Sortierung
+// "beliebteste zuoberst" in der Übungsübersicht.
+export type UebungBeliebtheit = {
+  uebung_id: string;
+  durchschnitt_herzen: number;
+  anzahl_bewertungen: number;
+};
+
 export type PushSubscriptionRow = {
   id: string;
   user_id: string;
@@ -258,6 +281,12 @@ export type Database = {
         Update: Partial<Freundeschallenge>;
         Relationships: [];
       };
+      uebung_bewertungen: {
+        Row: UebungBewertung;
+        Insert: Partial<UebungBewertung> & Pick<UebungBewertung, 'junior_id' | 'uebung_id' | 'herzen'>;
+        Update: Partial<UebungBewertung>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
 
@@ -301,6 +330,14 @@ export type Database = {
       meine_freundeschallengen: {
         Args: Record<PropertyKey, never>;
         Returns: MeineFreundeschallenge[];
+      };
+      bewerte_uebung: {
+        Args: { p_uebung_id: string; p_herzen: number };
+        Returns: UebungBewertung;
+      };
+      uebung_beliebtheit: {
+        Args: Record<PropertyKey, never>;
+        Returns: UebungBeliebtheit[];
       };
     };
   };

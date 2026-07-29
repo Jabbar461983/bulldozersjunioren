@@ -17,8 +17,12 @@ jedem Ereignis.
 **Phase 9:** Team-Rangliste filtert nach Übungs-Kategorie statt Altersgruppe; jede Übung hat neu
 eine individuelle, admin-konfigurierbare Punktzahl (Standard 10 für neue Übungen) statt des
 bisherigen globalen Basiswerts.
-**Phase 10 (dieses Repo-Stadium):** Nutzerverwaltung im Admin-Bereich — Admins können Junioren,
+**Phase 10:** Nutzerverwaltung im Admin-Bereich — Admins können Junioren,
 Trainer und weitere Admins anlegen, bearbeiten (Name, Rolle, Team) und löschen.
+**Phase 11 (dieses Repo-Stadium):** Beliebtheits-Bewertung — Junioren bewerten Übungen mit 1-5
+Herzen ("wie cool fandest du das?"), die Übungsübersicht zeigt den Herzen-Durchschnitt an und
+sortiert je Kategorie nach Beliebtheit (beliebteste zuoberst), anfangs auf 5 Übungen begrenzt mit
+"Mehr anzeigen"-Button.
 
 ## Tech-Stack
 
@@ -61,7 +65,7 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0014) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0015) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
@@ -71,7 +75,9 @@ scripts/
    0012 die Freundeschallenge-Badges (siehe Abschnitt "Freundeschallenges" weiter unten), 0013
    stellt `team_rangliste()` von Altersgruppen- auf Kategorie-Filterung um, 0014 ergänzt die
    individuelle Punktzahl pro Übung (`uebungen.punkte`, Standard 10) inkl. Anpassung von
-   `submit_selbsteinschaetzung()`.
+   `submit_selbsteinschaetzung()`, 0015 die Herzen-Bewertung pro Übung (`uebung_bewertungen`,
+   `bewerte_uebung()`, `uebung_beliebtheit()` — siehe Abschnitt "Beliebtheits-Bewertung" weiter
+   unten).
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -508,6 +514,28 @@ bearbeiten und löschen lassen:
   selbst aus dem Admin-Bereich aussperrt. Löschen fragt zusätzlich über `ConfirmDialog` nach, da
   es unwiderruflich ist und alle abhängigen Daten (Selbsteinschätzungen, Badges,
   Freundeschallenges, Push-Abos) per Kaskade mitgelöscht werden.
+
+## Beliebtheits-Bewertung (Phase 11)
+
+Bewusst getrennt von der Selbsteinschätzung (die misst, ob eine Übung geschafft wurde): Junioren
+können zusätzlich mit 1–5 Herzen bewerten, wie cool sie eine Übung generell finden.
+
+- **Bewerten** (`HerzenAuswahl` in `JuniorUebungDetail`, eigene Karte "Wie cool findest du diese
+  Übung?"): pro Junior und Übung genau eine Bewertung, die sich jederzeit überschreiben lässt
+  (kein täglicher Verlauf wie bei der Selbsteinschätzung). Läuft über die SECURITY-DEFINER-Funktion
+  `bewerte_uebung(uebung_id, herzen)` — bindet `junior_id` fest an `auth.uid()`, lässt nur die
+  Rolle `junior` zu und speichert per `upsert` (`on conflict (junior_id, uebung_id) do update`).
+- **Anzeige & Sortierung** (`/junior`, Übungsliste je gewählter Kategorie): `uebung_beliebtheit()`
+  liefert Durchschnitt + Anzahl Bewertungen pro Übung, ohne Rückschluss auf einzelne Stimmen
+  (gleiches Datenschutz-Muster wie `rangliste()`). Die Übungen einer Kategorie werden danach
+  absteigend sortiert (beliebteste zuoberst, unbewertete zählen als 0, Titel als Tie-Break);
+  jede Zeile zeigt den gerundeten Durchschnitt als Herzen sowie Durchschnitt und Anzahl als Text.
+- **Kompakte Liste:** anfangs nur die 5 beliebtesten Übungen der gewählten Kategorie, ein
+  "Mehr anzeigen"-Button blendet den Rest ein (setzt sich beim Wechsel der Kategorie zurück).
+- `public.uebung_bewertungen` hat keine direkte Insert/Update-Policy für Clients (analog zu
+  `selbsteinschaetzungen`, Migration 0003) — jede Änderung läuft ausschliesslich über
+  `bewerte_uebung()`. Direkt per `select` sichtbar ist nur die eigene Bewertung (z. B. um das
+  eigene Herzen-Bild in der Detailansicht vorauszufüllen).
 
 ## Bekannte Grenzen dieser Phase
 
