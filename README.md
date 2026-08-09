@@ -19,10 +19,15 @@ eine individuelle, admin-konfigurierbare Punktzahl (Standard 10 für neue Übung
 bisherigen globalen Basiswerts.
 **Phase 10:** Nutzerverwaltung im Admin-Bereich — Admins können Junioren,
 Trainer und weitere Admins anlegen, bearbeiten (Name, Rolle, Team) und löschen.
-**Phase 11 (dieses Repo-Stadium):** Beliebtheits-Bewertung — Junioren bewerten Übungen mit 1-5
+**Phase 11:** Beliebtheits-Bewertung — Junioren bewerten Übungen mit 1-5
 Herzen ("wie cool fandest du das?"), die Übungsübersicht zeigt den Herzen-Durchschnitt an und
 sortiert je Kategorie nach Beliebtheit (beliebteste zuoberst), anfangs auf 5 Übungen begrenzt mit
 "Mehr anzeigen"-Button.
+**Phase 12 (dieses Repo-Stadium):** Maskottchen "Pucky" optisch überarbeitet (rundes Gesicht mit
+Ring statt Puck-Ellipse), deutlich mehr Begrüssungs-/Feedback-Sprüche sowie ein Zufallswitz nach
+jeder Selbsteinschätzung. Admin kann jetzt auch Teams löschen (nicht nur Übungen). Übungen lassen
+sich mit einem oder mehreren Orten markieren, an denen sie am besten gemacht werden (Zuhause,
+Halle, Aussenplatz) — Zuhause-Übungen erhalten dafür ein 🏠-Symbol auf der Übungskarte.
 
 ## Tech-Stack
 
@@ -65,7 +70,7 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0015) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0016) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
@@ -77,7 +82,8 @@ scripts/
    individuelle Punktzahl pro Übung (`uebungen.punkte`, Standard 10) inkl. Anpassung von
    `submit_selbsteinschaetzung()`, 0015 die Herzen-Bewertung pro Übung (`uebung_bewertungen`,
    `bewerte_uebung()`, `uebung_beliebtheit()` — siehe Abschnitt "Beliebtheits-Bewertung" weiter
-   unten).
+   unten), 0016 den `ort_typ`-Enum und die Spalte `uebungen.orte` (Mehrfachauswahl, wo eine Übung
+   am besten gemacht wird).
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -536,6 +542,29 @@ können zusätzlich mit 1–5 Herzen bewerten, wie cool sie eine Übung generell
   `selbsteinschaetzungen`, Migration 0003) — jede Änderung läuft ausschliesslich über
   `bewerte_uebung()`. Direkt per `select` sichtbar ist nur die eigene Bewertung (z. B. um das
   eigene Herzen-Bild in der Detailansicht vorauszufüllen).
+
+## Maskottchen-Update, Sprüche/Witze, Team-Löschen, Übungsorte (Phase 12)
+
+- **Maskottchen "Pucky":** optisch überarbeitet (`Maskottchen.tsx`) — kreisrundes Gesicht mit
+  dickem Ring statt der bisherigen breiten Puck-Ellipse, dazu ein kleiner Hockeyschläger, der
+  hinter dem Kopf hervorschaut. Weiterhin dieselben 3 Zustände (neutral/freudig/aufmunternd) und
+  dieselbe Komponenten-API — die neue Optik gilt automatisch überall, wo `Maskottchen` verwendet
+  wird (Begrüssung auf `/junior`, Feedback und Level-/Badge-Feier in `JuniorUebungDetail`).
+- **Mehr Sprüche:** die Begrüssungs- (`JuniorHome`) und Feedback-Sprüche (`JuniorUebungDetail`,
+  je für "geschafft"/"nicht geschafft") wurden deutlich erweitert für mehr Abwechslung.
+- **Witz nach jeder Selbsteinschätzung:** unabhängig vom Ergebnis (geschafft oder nicht) zeigt
+  `JuniorUebungDetail` zusätzlich zum Maskottchen-Feedback einen zufälligen Witz aus einer festen
+  Liste (`WITZE`) — rein zur Auflockerung, ohne Einfluss auf Punkte oder Bewertung.
+- **Admin: Teams löschen** (`AdminHome`): analog zum bereits bestehenden Übungen-Löschen jetzt auch
+  für Teams möglich, mit `ConfirmDialog`-Bestätigung. Die RLS-Policy `teams_delete_admin`
+  (Migration 0001) erlaubte das serverseitig schon immer — es fehlte nur der Button. Mitglieder
+  eines gelöschten Teams verlieren ihre Team-Zugehörigkeit (`users.team_id` steht `on delete set
+  null`, siehe Migration 0001) und müssen danach einem neuen Team zugewiesen werden.
+- **Übungsorte** (`uebungen.orte`, Migration 0016): Trainer/Admin können beim Erstellen/Bearbeiten
+  einer Übung Mehrfachauswahl-Checkboxen setzen, wo sie am besten gemacht wird (Zuhause, Halle,
+  Aussenplatz) — optional, analog zur Altersgruppen-Auswahl. Übungen mit "Zuhause" erhalten
+  zusätzlich ein 🏠-Symbol direkt auf der Übungskarte in der Übersicht (`/junior`); die
+  Detailansicht zeigt alle markierten Orte als Tags neben der Kategorie.
 
 ## Bekannte Grenzen dieser Phase
 

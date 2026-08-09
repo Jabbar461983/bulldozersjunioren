@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
-import { ALTERSGRUPPEN, KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
+import { ALTERSGRUPPEN, KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN, ORT_LABELS } from '../lib/constants';
 import type { Altersgruppe, Uebung, UebungKategorie } from '../types/database';
 import { UebungForm } from './UebungForm';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -154,6 +154,7 @@ export function UebungenManager() {
                   <th>Titel</th>
                   <th>Kategorie</th>
                   <th>Altersgruppen</th>
+                  <th>Ort</th>
                   <th>Punkte</th>
                   <th>Aktionen</th>
                 </tr>
@@ -172,6 +173,17 @@ export function UebungenManager() {
                           {a}
                         </span>
                       ))}
+                    </td>
+                    <td>
+                      {u.orte.length === 0 ? (
+                        <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+                      ) : (
+                        u.orte.map((o) => (
+                          <span key={o} className="tag">
+                            {ORT_LABELS[o]}
+                          </span>
+                        ))
+                      )}
                     </td>
                     <td>{u.punkte}</td>
                     <td>

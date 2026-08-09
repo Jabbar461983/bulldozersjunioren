@@ -13,6 +13,8 @@ export type UebungKategorie =
   | 'kondition'
   | 'schnelligkeit';
 
+export type Ort = 'zuhause' | 'halle' | 'aussenplatz';
+
 export type Team = {
   id: string;
   name: string;
@@ -56,6 +58,9 @@ export type Uebung = {
   // Übung erhält. Individuell pro Übung durch einen Admin konfigurierbar,
   // Default für neue Übungen: 10.
   punkte: number;
+  // Wo die Übung am besten gemacht wird (Mehrfachauswahl, optional).
+  // 'zuhause' zeigt zusätzlich ein Haus-Symbol auf der Übungskarte.
+  orte: Ort[];
   created_at: string;
 };
 

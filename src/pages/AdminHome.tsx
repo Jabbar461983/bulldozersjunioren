@@ -7,6 +7,7 @@ import { UebungenManager } from '../components/UebungenManager';
 import { TeamBrandingForm } from '../components/TeamBrandingForm';
 import { FreundeschallengeKonfigurationCard } from '../components/FreundeschallengeKonfigurationCard';
 import { NutzerverwaltungManager } from '../components/NutzerverwaltungManager';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 export function AdminHome() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -18,6 +19,9 @@ export function AdminHome() {
   const [submitting, setSubmitting] = useState(false);
 
   const [brandingTeam, setBrandingTeam] = useState<Team | null>(null);
+
+  const [deleteTeamTarget, setDeleteTeamTarget] = useState<Team | null>(null);
+  const [deletingTeam, setDeletingTeam] = useState(false);
 
   async function loadTeams() {
     setLoading(true);
@@ -44,6 +48,21 @@ export function AdminHome() {
       setError(err instanceof Error ? err.message : 'Team konnte nicht erstellt werden.');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleConfirmDeleteTeam() {
+    if (!deleteTeamTarget) return;
+    setDeletingTeam(true);
+    try {
+      const { error } = await supabase.from('teams').delete().eq('id', deleteTeamTarget.id);
+      if (error) throw error;
+      setDeleteTeamTarget(null);
+      await loadTeams();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Team konnte nicht gelöscht werden.');
+    } finally {
+      setDeletingTeam(false);
     }
   }
 
@@ -128,6 +147,9 @@ export function AdminHome() {
                 <button className="btn-secondary" onClick={() => setBrandingTeam(team)}>
                   Branding
                 </button>
+                <button className="btn-danger" onClick={() => setDeleteTeamTarget(team)}>
+                  Löschen
+                </button>
               </li>
             ))}
           </ul>
@@ -139,6 +161,15 @@ export function AdminHome() {
       <FreundeschallengeKonfigurationCard />
 
       <NutzerverwaltungManager teams={teams} />
+
+      <ConfirmDialog
+        open={deleteTeamTarget !== null}
+        title="Team löschen?"
+        message={`Möchtest du "${deleteTeamTarget?.name}" wirklich unwiderruflich löschen? Mitglieder dieses Teams verlieren dadurch ihre Team-Zugehörigkeit und müssen einem neuen Team zugewiesen werden.`}
+        busy={deletingTeam}
+        onConfirm={handleConfirmDeleteTeam}
+        onCancel={() => setDeleteTeamTarget(null)}
+      />
     </DashboardLayout>
   );
 }

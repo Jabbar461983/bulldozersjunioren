@@ -7,15 +7,58 @@ import { DashboardLayout } from '../components/DashboardLayout';
 import { SterneAuswahl } from '../components/SterneAuswahl';
 import { HerzenAuswahl } from '../components/HerzenAuswahl';
 import { Maskottchen, type MaskottchenZustand } from '../components/Maskottchen';
-import { KATEGORIE_ICONS, KATEGORIE_LABELS } from '../lib/constants';
+import { KATEGORIE_ICONS, KATEGORIE_LABELS, ORT_ICONS, ORT_LABELS } from '../lib/constants';
 import { sendeFreundeschallengePush, sendeGamificationPush } from '../lib/push';
 import type { Selbsteinschaetzung, Uebung } from '../types/database';
 
-const FREUDIG_SPRUECHE = ['Super gemacht!', 'Stark! Weiter so!', 'Das war top!', 'Klasse Leistung!'];
+const FREUDIG_SPRUECHE = [
+  'Super gemacht!',
+  'Stark! Weiter so!',
+  'Das war top!',
+  'Klasse Leistung!',
+  'Wahnsinn, gut gemacht!',
+  'Du rockst das!',
+  'Absolute Bestleistung!',
+  'Weiter so, Champion!',
+  'Das sass!',
+  'Mega stark!',
+  'Bravo!',
+  'Du bist on fire!',
+  'Top Leistung, Respekt!',
+  'Einfach spitze!',
+];
 const AUFMUNTERN_SPRUECHE = [
   'Nicht schlimm, nächstes Mal klappt’s!',
   'Dranbleiben, du schaffst das!',
   'Übung macht den Meister!',
+  'Kopf hoch, das nächste Mal klappt’s!',
+  'Nicht aufgeben, du wirst immer besser!',
+  'Jeder Versuch zählt!',
+  'Beim nächsten Mal klappt’s bestimmt!',
+  'Das war ein guter Versuch!',
+  'Weiter üben, du bist auf dem richtigen Weg!',
+  'Nur Mut, du schaffst das!',
+];
+
+// Nach jeder Selbsteinschätzung (egal ob geschafft oder nicht) zusätzlich zum
+// Maskottchen-Spruch ein kleiner Extra-Lacher, rein zur Auflockerung – ohne
+// Einfluss auf Punkte/Bewertung.
+const WITZE = [
+  'Warum können Skelette so schlecht lügen? Weil man ihnen durch und durch sehen kann!',
+  'Zwei Pucks unterhalten sich: „Wie geht’s?“ – „Nur so am Rande!“',
+  'Warum haben Fische keinen guten Torabschluss? Sie haben Angst vor dem Netz!',
+  'Wie nennt man einen Torwart, der nie etwas durchlässt? Eine Wand mit Handschuhen!',
+  'Warum nahm der Hockeyschläger einen Regenschirm mit? Es sollte Pucks regnen!',
+  'Treffen sich zwei Jäger im Wald. Beide tot.',
+  'Warum ist das Mathebuch traurig? Es hat zu viele Probleme.',
+  'Was macht ein Pinguin im Sommer? Er schwitzt im Frack!',
+  'Warum können Bienen so gut zählen? Weil sie in Waben leben.',
+  'Wie nennt man einen Boomerang, der nicht zurückkommt? Einen Stock.',
+  'Was ist schwarz-weiss und rutscht über das Eis? Ein Zebra auf Schlittschuhen!',
+  'Warum hat der Kalender Angst? Seine Tage sind gezählt.',
+  'Wieso schwimmen Haie nur im Salzwasser? Pfeffer würde sie zum Niesen bringen.',
+  'Was sagt ein Stock zum anderen? Lass uns zusammenhalten!',
+  'Warum ist der Boden nie müde? Weil ihn alle treten, aber er steht immer wieder auf.',
 ];
 
 function zufaelligerSpruch(pool: string[]): string {
@@ -43,6 +86,7 @@ export function JuniorUebungDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [feier, setFeier] = useState<string | null>(null);
+  const [witz, setWitz] = useState<string | null>(null);
 
   const [meineBewertung, setMeineBewertung] = useState<number | null>(null);
   const [bewertungSpeichern, setBewertungSpeichern] = useState(false);
@@ -88,6 +132,7 @@ export function JuniorUebungDetail() {
     setError(null);
     setFeedback(null);
     setFeier(null);
+    setWitz(null);
     setSubmitting(true);
     try {
       const { data, error } = await supabase.rpc('submit_selbsteinschaetzung', {
@@ -103,6 +148,7 @@ export function JuniorUebungDetail() {
           ? { zustand: 'freudig', text: `${zufaelligerSpruch(FREUDIG_SPRUECHE)} +${punkte} Punkte` }
           : { zustand: 'aufmunternd', text: zufaelligerSpruch(AUFMUNTERN_SPRUECHE) }
       );
+      setWitz(zufaelligerSpruch(WITZE));
 
       const feierMeldungen: string[] = [];
       if (data.level_aufstieg) {
@@ -242,6 +288,11 @@ export function JuniorUebungDetail() {
         <span className="tag">
           {KATEGORIE_ICONS[uebung.kategorie]} {KATEGORIE_LABELS[uebung.kategorie]}
         </span>
+        {uebung.orte.map((o) => (
+          <span key={o} className="tag" style={{ marginLeft: 6 }}>
+            {ORT_ICONS[o]} {ORT_LABELS[o]}
+          </span>
+        ))}
         <h2>{uebung.titel}</h2>
         {uebung.bild_url && (
           <img
@@ -264,6 +315,11 @@ export function JuniorUebungDetail() {
         <h2>Selbsteinschätzung</h2>
         {error && <div className="alert-error">{error}</div>}
         {feedback && <Maskottchen zustand={feedback.zustand} text={feedback.text} />}
+        {witz && (
+          <p style={{ marginTop: 10, fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
+            😄 {witz}
+          </p>
+        )}
 
         {schritt === 'wahl' && (
           <div className="field">

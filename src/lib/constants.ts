@@ -1,4 +1,4 @@
-import type { Altersgruppe, FreundeschallengeStatus, UebungKategorie } from '../types/database';
+import type { Altersgruppe, FreundeschallengeStatus, Ort, UebungKategorie } from '../types/database';
 
 export const ALTERSGRUPPEN: Altersgruppe[] = ['U9', 'U12', 'U15', 'U18'];
 
@@ -30,6 +30,20 @@ export const KATEGORIE_ICONS: Record<UebungKategorie, string> = {
   koordination: '🤹',
   kondition: '🏃',
   schnelligkeit: '⚡',
+};
+
+export const ORTE: Ort[] = ['zuhause', 'halle', 'aussenplatz'];
+
+export const ORT_LABELS: Record<Ort, string> = {
+  zuhause: 'Zuhause',
+  halle: 'Halle',
+  aussenplatz: 'Aussenplatz',
+};
+
+export const ORT_ICONS: Record<Ort, string> = {
+  zuhause: '🏠',
+  halle: '🏟️',
+  aussenplatz: '🌳',
 };
 
 export const FREUNDESCHALLENGE_STATUS_LABELS: Record<FreundeschallengeStatus, string> = {

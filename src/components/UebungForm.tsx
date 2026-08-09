@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { uploadUebungBild } from '../lib/storage';
 import { useAuth } from '../contexts/AuthContext';
-import { ALTERSGRUPPEN, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
-import type { Altersgruppe, Uebung, UebungKategorie } from '../types/database';
+import { ALTERSGRUPPEN, KATEGORIE_LABELS, KATEGORIEN, ORT_LABELS, ORTE } from '../lib/constants';
+import type { Altersgruppe, Ort, Uebung, UebungKategorie } from '../types/database';
 
 type BildModus = 'url' | 'upload';
 
@@ -23,6 +23,7 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
   const [altersgruppen, setAltersgruppen] = useState<Altersgruppe[]>(
     initial?.altersgruppen ?? []
   );
+  const [orte, setOrte] = useState<Ort[]>(initial?.orte ?? []);
   const [punkte, setPunkte] = useState(initial?.punkte ?? 10);
   const [bildModus, setBildModus] = useState<BildModus>('url');
   const [bildUrl, setBildUrl] = useState(initial?.bild_url ?? '');
@@ -35,6 +36,10 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
     setAltersgruppen((prev) =>
       prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
     );
+  }
+
+  function toggleOrt(o: Ort) {
+    setOrte((prev) => (prev.includes(o) ? prev.filter((x) => x !== o) : [...prev, o]));
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -81,6 +86,7 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
         beschreibung: beschreibung.trim(),
         kategorie,
         altersgruppen,
+        orte,
         bild_url: finalBildUrl,
         // Nur Admins dürfen die Punktzahl setzen/ändern (serverseitig per
         // Trigger erzwungen); ohne Admin-Rolle greift der DB-Standardwert.
@@ -181,6 +187,22 @@ export function UebungForm({ initial, onSaved, onCancel }: UebungFormProps) {
                   onChange={() => toggleAltersgruppe(a)}
                 />
                 {a}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="field">
+          <label>Wo am besten zu machen? (Mehrfachauswahl, optional)</label>
+          <div className="radio-group">
+            {ORTE.map((o) => (
+              <label key={o}>
+                <input
+                  type="checkbox"
+                  checked={orte.includes(o)}
+                  onChange={() => toggleOrt(o)}
+                />
+                {ORT_LABELS[o]}
               </label>
             ))}
           </div>

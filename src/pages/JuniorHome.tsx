@@ -18,6 +18,16 @@ const BEGRUESSUNGEN = [
   'Schön, dich zu sehen!',
   'Auf geht’s, zeig was du kannst!',
   'Lust auf eine Übung?',
+  'Heute schon eine Übung gemacht?',
+  'Zeit, richtig Gas zu geben!',
+  'Dein Team zählt auf dich!',
+  'Bereit, neue Punkte zu sammeln?',
+  'Lass uns trainieren!',
+  'Schön, dass du wieder da bist!',
+  'Auf zu neuen Bestleistungen!',
+  'Bereit für die nächste Challenge?',
+  'Dein Maskottchen freut sich auf dich!',
+  'Auf geht’s, das Eis wartet nicht!',
 ];
 
 export function JuniorHome() {
@@ -160,6 +170,11 @@ export function JuniorHome() {
                 <span style={{ fontWeight: 700 }}>
                   <span className="kategorie-icon">{KATEGORIE_ICONS[u.kategorie]}</span>
                   {u.titel}
+                  {u.orte.includes('zuhause') && (
+                    <span title="Zuhause machbar" style={{ marginLeft: 6 }}>
+                      🏠
+                    </span>
+                  )}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <HerzenAuswahl
