@@ -32,7 +32,11 @@ export function LoginPage() {
     <div className="app-shell">
       <div className="auth-card">
         <div className="brand">
-          <div className="brand-badge">🏒</div>
+          <img
+            src="/logo-bulldozers_farbig.png"
+            alt="Streethockeyclub Bulldozers"
+            className="brand-logo"
+          />
           <div>
             <h1 style={{ fontSize: '1.25rem' }}>Bulldozers Challenge</h1>
           </div>

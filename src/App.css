@@ -39,6 +39,13 @@
   flex-shrink: 0;
 }
 
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .field {
   display: flex;
   flex-direction: column;
