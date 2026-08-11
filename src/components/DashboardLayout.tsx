@@ -11,7 +11,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const { profile, team, signOut } = useAuth();
 
   return (
-    <div className="app-shell" style={{ maxWidth: 720 }}>
+    <div className="app-shell app-shell--dashboard">
       <div className="dashboard-header">
         <div className="dashboard-brand">
           {team?.logo_url ? (
