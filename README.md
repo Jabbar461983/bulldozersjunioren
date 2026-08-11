@@ -23,13 +23,18 @@ Trainer und weitere Admins anlegen, bearbeiten (Name, Rolle, Team) und löschen.
 Herzen ("wie cool fandest du das?"), die Übungsübersicht zeigt den Herzen-Durchschnitt an und
 sortiert je Kategorie nach Beliebtheit (beliebteste zuoberst), anfangs auf 5 Übungen begrenzt mit
 "Mehr anzeigen"-Button.
-**Phase 12 (dieses Repo-Stadium):** Maskottchen "Pucky" optisch überarbeitet (rundes Gesicht mit
+**Phase 12:** Maskottchen "Pucky" optisch überarbeitet (rundes Gesicht mit
 Ring statt Puck-Ellipse), deutlich mehr Begrüssungs-/Feedback-Sprüche sowie ein Zufallswitz nach
 jeder Selbsteinschätzung. Admin kann jetzt auch Teams löschen (nicht nur Übungen). Übungen lassen
 sich mit einem oder mehreren Orten markieren, an denen sie am besten gemacht werden (Zuhause,
 Spielfeld) — Zuhause-Übungen erhalten dafür ein 🏠-Symbol, Spielfeld-Übungen ein 🏒-Symbol.
 Browser-Tab-Icon und App-Icon zeigen jetzt das echte Vereinslogo statt eines Platzhalter-Symbols.
 Selbsteinschätzungen sind neu auf maximal 3 pro Übung und Tag begrenzt.
+**Phase 13 (dieses Repo-Stadium):** Übungsliste je Kategorie zeigt neu maximal 3 Übungen, die sich
+wöchentlich automatisch abwechseln — ausser ein Junior hat gerade eine aktive Freundeschallenge in
+dieser Kategorie laufen, dann bleiben alle Übungen sichtbar. Ausserdem: das Dashboard (Admin-/
+Trainer-Tabellen) nutzt auf breiten Bildschirmen (PC) jetzt mehr Platz, damit z. B. die
+Bearbeiten-/Löschen-Buttons in der Übungen-/Nutzerverwaltung nicht mehr abgeschnitten werden.
 
 ## Tech-Stack
 
@@ -542,8 +547,8 @@ können zusätzlich mit 1–5 Herzen bewerten, wie cool sie eine Übung generell
   (gleiches Datenschutz-Muster wie `rangliste()`). Die Übungen einer Kategorie werden danach
   absteigend sortiert (beliebteste zuoberst, unbewertete zählen als 0, Titel als Tie-Break);
   jede Zeile zeigt den gerundeten Durchschnitt als Herzen sowie Durchschnitt und Anzahl als Text.
-- **Kompakte Liste:** anfangs nur die 5 beliebtesten Übungen der gewählten Kategorie, ein
-  "Mehr anzeigen"-Button blendet den Rest ein (setzt sich beim Wechsel der Kategorie zurück).
+- **Kompakte Liste:** pro Kategorie werden maximal 3 Übungen angezeigt, wöchentlich rotierend
+  (siehe Abschnitt "Übungsrotation & Dashboard-Layout (Phase 13)" weiter unten).
 - `public.uebung_bewertungen` hat keine direkte Insert/Update-Policy für Clients (analog zu
   `selbsteinschaetzungen`, Migration 0003) — jede Änderung läuft ausschliesslich über
   `bewerte_uebung()`. Direkt per `select` sichtbar ist nur die eigene Bewertung (z. B. um das
@@ -593,6 +598,30 @@ können zusätzlich mit 1–5 Herzen bewerten, wie cool sie eine Übung generell
   zugehörigen Push-Benachrichtigungen wurden von konfrontativer ("herausfordern", "gegen X",
   "Herausforderung") auf kollaborative Sprache umgestellt ("mit X zusammenspannen", "Einladung").
   Rein sprachlich — Datenmodell, Funktionsnamen und Ablauf sind unverändert.
+
+## Übungsrotation & Dashboard-Layout (Phase 13)
+
+- **Maximal 3 Übungen pro Kategorie, wöchentliche Rotation** (`JuniorHome.tsx`): statt aller
+  (oder der 5 beliebtesten) Übungen einer Kategorie werden nur noch maximal 3 angezeigt. Welche
+  das sind, wechselt automatisch jede Woche — berechnet rein clientseitig aus dem aktuellen Datum
+  (`wochenBucket()`, 7-Tage-Bucket seit Unix-Epoch) kombiniert mit einem einfachen deterministischen
+  Hash aus Übungs-ID und Wochen-Bucket (`einfacherHash()`). Dieselbe Übung ergibt in derselben
+  Woche für alle Junioren denselben Hash-Wert, wechselt aber automatisch mit der nächsten Woche —
+  ganz ohne neue Datenbanktabelle, gespeicherten Rotationsstatus oder Cronjob.
+- **Ausnahme bei aktiver Freundeschallenge:** `freundeschallenges` sind pro Kategorie (nicht pro
+  einzelner Übung) geführt — eine Challenge gilt als erfüllt, sobald an 3 Folgetagen irgendeine
+  Übung der verabredeten Kategorie geschafft wurde. Damit die Rotation keine Übung ausblendet, die
+  für eine laufende Challenge noch gebraucht wird, lädt `JuniorHome` zusätzlich
+  `meine_freundeschallengen()`; hat ein Junior dort eine Challenge mit `status = 'aktiv'` in der
+  gerade gewählten Kategorie, wird die 3er-Rotation für diese Kategorie komplett umgangen und alle
+  Übungen bleiben sichtbar, bis die Challenge abgeschlossen ist.
+- **Dashboard-Layout auf breiten Bildschirmen:** `DashboardLayout` (verwendet von allen
+  eingeloggten Ansichten inkl. Admin-Übungen-/Nutzerverwaltung) war fix auf 720px begrenzt — auf
+  einem PC-Bildschirm wurden dadurch breite Tabellen (z. B. die Übungen-Tabelle mit Titel,
+  Kategorie, Altersgruppen, Ort, Punkte, Aktionen) rechts abgeschnitten, insbesondere die
+  Bearbeiten-/Löschen-Buttons in der letzten Spalte. Neu: ab 900px Fensterbreite wird das Dashboard
+  bis 1100px breit (`.app-shell--dashboard`-Klasse mit Media Query in `App.css`), auf schmalen
+  Bildschirmen (Smartphone) bleibt es unverändert bei 720px.
 
 ## Bekannte Grenzen dieser Phase
 

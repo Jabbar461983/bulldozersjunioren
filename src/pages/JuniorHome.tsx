@@ -9,9 +9,26 @@ import { RanglisteCard } from '../components/RanglisteCard';
 import { HerzenAuswahl } from '../components/HerzenAuswahl';
 import { KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import { effektiverTagesStreak, levelFortschritt } from '../lib/gamification';
-import type { Uebung, UebungBeliebtheit, UebungKategorie } from '../types/database';
+import type { MeineFreundeschallenge, Uebung, UebungBeliebtheit, UebungKategorie } from '../types/database';
 
-const ANZAHL_KOMPAKT = 5;
+const ANZAHL_ROTATION = 3;
+const WOCHE_MS = 1000 * 60 * 60 * 24 * 7;
+
+// Einfacher, deterministischer Hash für die wöchentliche Übungsrotation:
+// dieselbe Übung + derselbe Wochen-Bucket ergeben immer denselben Wert,
+// sodass die Auswahl über die Woche stabil bleibt und ohne DB-Status
+// (rein aus dem aktuellen Datum) berechnet werden kann.
+function einfacherHash(text: string): number {
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+function wochenBucket(): number {
+  return Math.floor(Date.now() / WOCHE_MS);
+}
 
 const BEGRUESSUNGEN = [
   'Bereit für dein Training?',
@@ -41,7 +58,17 @@ export function JuniorHome() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filterKategorie, setFilterKategorie] = useState<UebungKategorie | ''>('');
-  const [alleAnzeigen, setAlleAnzeigen] = useState(false);
+  const [challenges, setChallenges] = useState<MeineFreundeschallenge[]>([]);
+
+  useEffect(() => {
+    // Wird einmalig geladen (unabhängig von der gewählten Kategorie), um zu
+    // wissen, in welchen Kategorien gerade eine aktive Freundeschallenge
+    // läuft — dort darf die Übungsrotation nicht greifen (siehe unten).
+    void (async () => {
+      const { data, error } = await supabase.rpc('meine_freundeschallengen');
+      if (!error) setChallenges(data ?? []);
+    })();
+  }, []);
 
   const loadUebungen = useCallback(async () => {
     if (!filterKategorie) {
@@ -72,10 +99,6 @@ export function JuniorHome() {
     void loadUebungen();
   }, [loadUebungen]);
 
-  useEffect(() => {
-    setAlleAnzeigen(false);
-  }, [filterKategorie]);
-
   // Beliebteste Übung (meiste Herzen im Schnitt) zuoberst, unbewertete
   // Übungen (kein Eintrag in der Map) zählen dabei als 0.
   const sortierteUebungen = [...uebungen].sort((a, b) => {
@@ -84,9 +107,24 @@ export function JuniorHome() {
     if (bDurchschnitt !== aDurchschnitt) return bDurchschnitt - aDurchschnitt;
     return a.titel.localeCompare(b.titel);
   });
-  const sichtbareUebungen = alleAnzeigen
+
+  // Solange eine aktive Freundeschallenge in dieser Kategorie läuft, bleiben
+  // alle Übungen sichtbar — die Rotation darf keine Übung ausblenden, die
+  // dafür noch gebraucht wird. Sonst: pro Kategorie max. 3 Übungen, die sich
+  // wöchentlich (deterministisch per Datum) automatisch abwechseln.
+  const hatAktiveChallengeInKategorie = challenges.some(
+    (c) => c.status === 'aktiv' && c.kategorie === filterKategorie
+  );
+  const bucket = wochenBucket();
+  const rotationsIds = new Set(
+    [...uebungen]
+      .sort((a, b) => einfacherHash(`${a.id}-${bucket}`) - einfacherHash(`${b.id}-${bucket}`))
+      .slice(0, ANZAHL_ROTATION)
+      .map((u) => u.id)
+  );
+  const sichtbareUebungen = hatAktiveChallengeInKategorie
     ? sortierteUebungen
-    : sortierteUebungen.slice(0, ANZAHL_KOMPAKT);
+    : sortierteUebungen.filter((u) => rotationsIds.has(u.id));
 
   const fortschritt = levelFortschritt(profile?.punkte_total ?? 0);
   const tagesStreak = profile
@@ -196,16 +234,6 @@ export function JuniorHome() {
               </Link>
             );
           })}
-
-        {filterKategorie && !loading && sortierteUebungen.length > ANZAHL_KOMPAKT && !alleAnzeigen && (
-          <button
-            className="btn-secondary"
-            style={{ marginTop: 12 }}
-            onClick={() => setAlleAnzeigen(true)}
-          >
-            Mehr anzeigen ({sortierteUebungen.length - ANZAHL_KOMPAKT} weitere)
-          </button>
-        )}
       </div>
     </DashboardLayout>
   );
