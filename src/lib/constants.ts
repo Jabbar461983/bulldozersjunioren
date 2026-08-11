@@ -32,18 +32,16 @@ export const KATEGORIE_ICONS: Record<UebungKategorie, string> = {
   schnelligkeit: '⚡',
 };
 
-export const ORTE: Ort[] = ['zuhause', 'halle', 'aussenplatz'];
+export const ORTE: Ort[] = ['zuhause', 'halle'];
 
 export const ORT_LABELS: Record<Ort, string> = {
   zuhause: 'Zuhause',
-  halle: 'Halle',
-  aussenplatz: 'Aussenplatz',
+  halle: 'Spielfeld',
 };
 
 export const ORT_ICONS: Record<Ort, string> = {
   zuhause: '🏠',
-  halle: '🏟️',
-  aussenplatz: '🌳',
+  halle: '🏒',
 };
 
 export const FREUNDESCHALLENGE_STATUS_LABELS: Record<FreundeschallengeStatus, string> = {

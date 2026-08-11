@@ -13,7 +13,7 @@ export type UebungKategorie =
   | 'kondition'
   | 'schnelligkeit';
 
-export type Ort = 'zuhause' | 'halle' | 'aussenplatz';
+export type Ort = 'zuhause' | 'halle';
 
 export type Team = {
   id: string;

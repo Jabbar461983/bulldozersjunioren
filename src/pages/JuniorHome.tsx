@@ -175,6 +175,11 @@ export function JuniorHome() {
                       🏠
                     </span>
                   )}
+                  {u.orte.includes('halle') && (
+                    <span title="Auf dem Spielfeld machbar" style={{ marginLeft: 6 }}>
+                      🏒
+                    </span>
+                  )}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <HerzenAuswahl
