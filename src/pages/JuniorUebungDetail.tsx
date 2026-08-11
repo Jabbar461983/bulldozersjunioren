@@ -334,6 +334,10 @@ export function JuniorUebungDetail() {
             {schritt === 'wahl' && (
               <div className="field">
                 <label>Hast du es geschafft?</label>
+                <div className="alert-error" style={{ marginBottom: 10 }}>
+                  ⚖️ Fairplay ist Ehrensache: Ich klicke nur "Geschafft", wenn ich die Übung auch
+                  wirklich absolviert habe.
+                </div>
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button
                     className="btn-primary"

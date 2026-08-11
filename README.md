@@ -72,7 +72,7 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0018) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0019) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
@@ -87,7 +87,9 @@ scripts/
    unten), 0016 den `ort_typ`-Enum und die Spalte `uebungen.orte` (Mehrfachauswahl, wo eine Übung
    am besten gemacht wird), 0017 entfernt den Wert `aussenplatz` wieder aus `ort_typ` (verbleibende
    Werte: `zuhause`, `halle` — im Frontend als "Spielfeld" beschriftet), 0018 begrenzt
-   Selbsteinschätzungen auf maximal 3 pro Übung und Tag (`submit_selbsteinschaetzung()`).
+   Selbsteinschätzungen auf maximal 3 pro Übung und Tag (`submit_selbsteinschaetzung()`), 0019
+   ergänzt zusätzlich ein Tempolimit von maximal 3 Selbsteinschätzungen pro Junior innerhalb von
+   5 Minuten, übungsübergreifend.
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -578,6 +580,15 @@ können zusätzlich mit 1–5 Herzen bewerten, wie cool sie eine Übung generell
   zu farmen. `JuniorUebungDetail` blendet nach dem 3. Versuch die Geschafft/Nicht-geschafft-Buttons
   aus und zeigt stattdessen einen Hinweistext ("Morgen geht's weiter!"), damit Junioren nicht erst
   über eine Fehlermeldung vom Limit erfahren.
+- **Tempolimit übungsübergreifend (Migration 0019):** zusätzlich zum Tageslimit pro Übung lässt
+  `submit_selbsteinschaetzung()` maximal 3 Selbsteinschätzungen pro Junior innerhalb der letzten
+  5 Minuten zu (`created_at`-Zeitstempel, über alle Übungen hinweg) — bricht sehr schnelles
+  Durchklicken mehrerer Übungen hintereinander ab. Anders als beim Tageslimit gibt es hierfür
+  keine proaktive Frontend-Anzeige (dafür müssten übungsübergreifend alle kürzlichen
+  Einschätzungen geladen werden); der Fehler erscheint wie gewohnt im `alert-error`-Bereich.
+- **Fairplay-Hinweis:** `JuniorUebungDetail` zeigt direkt bei der Frage "Hast du es geschafft?"
+  einen roten Hinweisbalken ("Fairplay ist Ehrensache …") — rein appellativ, keine technische
+  Durchsetzung.
 - **Freundeschallenge, positivere Formulierung:** Texte auf `/junior/freundeschallenge` und in den
   zugehörigen Push-Benachrichtigungen wurden von konfrontativer ("herausfordern", "gegen X",
   "Herausforderung") auf kollaborative Sprache umgestellt ("mit X zusammenspannen", "Einladung").
