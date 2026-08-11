@@ -66,7 +66,7 @@ export function JuniorFreundeschallenge() {
       showToast({ icon: '🤝', title: 'Freundeschallenge gesendet!', body: 'Warte auf die Antwort.' });
       void sendeFreundeschallengePush(empfaengerId, {
         title: 'Neue Freundeschallenge! 🤝',
-        body: `${profile.vorname} fordert dich in ${KATEGORIE_LABELS[kategorie]} heraus – 3 Tage in Folge!`,
+        body: `${profile.vorname} möchte mit dir in ${KATEGORIE_LABELS[kategorie]} zusammenspannen – 3 Tage in Folge!`,
       });
 
       setEmpfaengerId('');
@@ -97,8 +97,8 @@ export function JuniorFreundeschallenge() {
       void sendeFreundeschallengePush(challenge.gegner_id, {
         title: annehmen ? 'Freundeschallenge angenommen! 🤝' : 'Freundeschallenge abgelehnt',
         body: annehmen
-          ? `${profile.vorname} hat deine Herausforderung angenommen. Los geht’s!`
-          : `${profile.vorname} hat deine Herausforderung leider abgelehnt.`,
+          ? `${profile.vorname} hat deine Einladung angenommen. Los geht’s!`
+          : `${profile.vorname} hat deine Einladung leider abgelehnt.`,
       });
 
       await load();
@@ -118,9 +118,9 @@ export function JuniorFreundeschallenge() {
       <div className="card" style={{ marginTop: 16 }}>
         <h2>🤝 Freundeschallenge</h2>
         <p>
-          Fordere einen anderen Junior heraus: Wählt eine Kategorie und macht 3 Tage in Folge eine
-          Übung daraus. Schaffen es beide, gibt es Extrapunkte – schafft es jemand nicht, ist die
-          Challenge ohne Punkte beendet.
+          Spanne mit einem anderen Junior:in zusammen: Wählt eine Kategorie und macht 3 Tage in
+          Folge eine Übung daraus. Schaffen es beide, gibt es Extrapunkte – schafft es jemand
+          nicht, ist die Challenge ohne Punkte beendet.
         </p>
       </div>
 
@@ -145,7 +145,7 @@ export function JuniorFreundeschallenge() {
               {KATEGORIE_LABELS[aktuelle.kategorie]}
             </span>
             <span>
-              gegen {aktuelle.gegner_vorname} {aktuelle.gegner_nachname_initiale}.
+              mit {aktuelle.gegner_vorname} {aktuelle.gegner_nachname_initiale}.
             </span>
             <span className="tag">{FREUNDESCHALLENGE_STATUS_LABELS[aktuelle.status]}</span>
           </div>
@@ -191,7 +191,7 @@ export function JuniorFreundeschallenge() {
           ) : (
             <form onSubmit={handleAnfragen}>
               <div className="field">
-                <label htmlFor="challenge-empfaenger">Wen forderst du heraus?</label>
+                <label htmlFor="challenge-empfaenger">Mit wem möchtest du zusammenspannen?</label>
                 <select
                   id="challenge-empfaenger"
                   required
@@ -239,7 +239,7 @@ export function JuniorFreundeschallenge() {
                 {KATEGORIE_LABELS[c.kategorie]}
               </span>
               <span>
-                gegen {c.gegner_vorname} {c.gegner_nachname_initiale}.
+                mit {c.gegner_vorname} {c.gegner_nachname_initiale}.
               </span>
               <span className="tag">{FREUNDESCHALLENGE_STATUS_LABELS[c.status]}</span>
               {c.status === 'erfolgreich' && (

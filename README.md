@@ -578,6 +578,10 @@ können zusätzlich mit 1–5 Herzen bewerten, wie cool sie eine Übung generell
   zu farmen. `JuniorUebungDetail` blendet nach dem 3. Versuch die Geschafft/Nicht-geschafft-Buttons
   aus und zeigt stattdessen einen Hinweistext ("Morgen geht's weiter!"), damit Junioren nicht erst
   über eine Fehlermeldung vom Limit erfahren.
+- **Freundeschallenge, positivere Formulierung:** Texte auf `/junior/freundeschallenge` und in den
+  zugehörigen Push-Benachrichtigungen wurden von konfrontativer ("herausfordern", "gegen X",
+  "Herausforderung") auf kollaborative Sprache umgestellt ("mit X zusammenspannen", "Einladung").
+  Rein sprachlich — Datenmodell, Funktionsnamen und Ablauf sind unverändert.
 
 ## Bekannte Grenzen dieser Phase
 
