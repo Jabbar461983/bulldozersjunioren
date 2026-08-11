@@ -242,6 +242,10 @@ export function JuniorUebungDetail() {
     void submitEinschaetzung(true, wert);
   }
 
+  const heute = new Date().toISOString().slice(0, 10);
+  const heutigeAnzahl = verlauf.filter((v) => v.datum === heute).length;
+  const limitErreicht = heutigeAnzahl >= 3;
+
   async function handleBewertung(wert: number) {
     if (!id) return;
     const vorherigeBewertung = meineBewertung;
@@ -321,38 +325,46 @@ export function JuniorUebungDetail() {
           </p>
         )}
 
-        {schritt === 'wahl' && (
-          <div className="field">
-            <label>Hast du es geschafft?</label>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                className="btn-primary"
-                style={{ flex: 1, width: 'auto' }}
-                onClick={handleGeschafftKlick}
-                disabled={submitting}
-              >
-                Geschafft
-              </button>
-              <button
-                className="btn-secondary"
-                style={{ flex: 1 }}
-                onClick={handleNichtGeschafftKlick}
-                disabled={submitting}
-              >
-                {submitting ? 'Wird gespeichert …' : 'Nicht geschafft'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {schritt === 'gefuehl' && (
-          <div className="field">
-            <label>Wie hat es sich angefühlt?</label>
-            <SterneAuswahl value={sterne} onChange={handleSterneWahl} readOnly={submitting} />
-            {submitting && (
-              <small style={{ color: 'var(--color-text-muted)' }}>Wird gespeichert …</small>
+        {limitErreicht ? (
+          <p>
+            Du hast diese Übung heute schon 3x eingeschätzt. Morgen geht’s weiter! 💪
+          </p>
+        ) : (
+          <>
+            {schritt === 'wahl' && (
+              <div className="field">
+                <label>Hast du es geschafft?</label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button
+                    className="btn-primary"
+                    style={{ flex: 1, width: 'auto' }}
+                    onClick={handleGeschafftKlick}
+                    disabled={submitting}
+                  >
+                    Geschafft
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    style={{ flex: 1 }}
+                    onClick={handleNichtGeschafftKlick}
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Wird gespeichert …' : 'Nicht geschafft'}
+                  </button>
+                </div>
+              </div>
             )}
-          </div>
+
+            {schritt === 'gefuehl' && (
+              <div className="field">
+                <label>Wie hat es sich angefühlt?</label>
+                <SterneAuswahl value={sterne} onChange={handleSterneWahl} readOnly={submitting} />
+                {submitting && (
+                  <small style={{ color: 'var(--color-text-muted)' }}>Wird gespeichert …</small>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 

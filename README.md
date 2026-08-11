@@ -29,6 +29,7 @@ jeder Selbsteinschätzung. Admin kann jetzt auch Teams löschen (nicht nur Übun
 sich mit einem oder mehreren Orten markieren, an denen sie am besten gemacht werden (Zuhause,
 Spielfeld) — Zuhause-Übungen erhalten dafür ein 🏠-Symbol, Spielfeld-Übungen ein 🏒-Symbol.
 Browser-Tab-Icon und App-Icon zeigen jetzt das echte Vereinslogo statt eines Platzhalter-Symbols.
+Selbsteinschätzungen sind neu auf maximal 3 pro Übung und Tag begrenzt.
 
 ## Tech-Stack
 
@@ -71,7 +72,7 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0017) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0018) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
@@ -85,7 +86,8 @@ scripts/
    `bewerte_uebung()`, `uebung_beliebtheit()` — siehe Abschnitt "Beliebtheits-Bewertung" weiter
    unten), 0016 den `ort_typ`-Enum und die Spalte `uebungen.orte` (Mehrfachauswahl, wo eine Übung
    am besten gemacht wird), 0017 entfernt den Wert `aussenplatz` wieder aus `ort_typ` (verbleibende
-   Werte: `zuhause`, `halle` — im Frontend als "Spielfeld" beschriftet).
+   Werte: `zuhause`, `halle` — im Frontend als "Spielfeld" beschriftet), 0018 begrenzt
+   Selbsteinschätzungen auf maximal 3 pro Übung und Tag (`submit_selbsteinschaetzung()`).
 4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
    E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
    Bestätigungslink eingeloggt werden.
@@ -570,6 +572,12 @@ können zusätzlich mit 1–5 Herzen bewerten, wie cool sie eine Übung generell
   als Tags neben der Kategorie.
 - **Browser-Tab-/App-Icon:** zeigt jetzt das echte Vereinslogo (`public/logo-bulldozers_farbig.png`)
   statt des zuvor generierten Platzhalter-Symbols.
+- **Tageslimit pro Übung (Migration 0018):** `submit_selbsteinschaetzung()` lässt pro Junior und
+  Übung maximal 3 Selbsteinschätzungen pro Kalendertag zu (zählt "geschafft" und "nicht geschafft"
+  gleichermassen) — verhindert, dass dieselbe Übung beliebig oft wiederholt wird, um Punkte/Streaks
+  zu farmen. `JuniorUebungDetail` blendet nach dem 3. Versuch die Geschafft/Nicht-geschafft-Buttons
+  aus und zeigt stattdessen einen Hinweistext ("Morgen geht's weiter!"), damit Junioren nicht erst
+  über eine Fehlermeldung vom Limit erfahren.
 
 ## Bekannte Grenzen dieser Phase
 
