@@ -8,7 +8,7 @@ Zuhause-Trainieren, Selbsteinschätzung und Ranglisten zum Vergleichen mit dem T
 **Phase 3:** Junior-Ansicht mit Selbsteinschätzung und Verlauf.
 **Phase 4:** Gamification-Engine — Punkte, Level, tägliche/wöchentliche Streaks, 27 Badges und
 Web-Push-Benachrichtigungen.
-**Phase 6:** Comic-artiges Design, Vereins-Branding (Logo + Farben) und Maskottchen "Pucky".
+**Phase 6:** Comic-artiges Design, Vereins-Branding (Logo + Farben) und Maskottchen "Bully".
 **Phase 7:** Push-Notifications abgerundet — Berechtigungs-Flow beim ersten Login und
 In-App-Fallback-Benachrichtigung (Toast).
 **Phase 8:** Freundeschallenges — ein Junior fordert einen anderen heraus, 3 Tage in Folge
@@ -23,7 +23,7 @@ Trainer und weitere Admins anlegen, bearbeiten (Name, Rolle, Team) und löschen.
 Herzen ("wie cool fandest du das?"), die Übungsübersicht zeigt den Herzen-Durchschnitt an und
 sortiert je Kategorie nach Beliebtheit (beliebteste zuoberst), anfangs auf 5 Übungen begrenzt mit
 "Mehr anzeigen"-Button.
-**Phase 12:** Maskottchen "Pucky" optisch überarbeitet (rundes Gesicht mit
+**Phase 12:** Maskottchen "Bully" optisch überarbeitet (rundes Gesicht mit
 Ring statt Puck-Ellipse), deutlich mehr Begrüssungs-/Feedback-Sprüche sowie ein Zufallswitz nach
 jeder Selbsteinschätzung. Admin kann jetzt auch Teams löschen (nicht nur Übungen). Übungen lassen
 sich mit einem oder mehreren Orten markieren, an denen sie am besten gemacht werden (Zuhause,
@@ -414,7 +414,7 @@ Durchgängig überarbeitet für eine junge, mobile Zielgruppe (`src/index.css`/`
 - Mobile-first: Alle Ansichten sind von Phase 1 an einspaltig für Smartphones ausgelegt; die
   Layout-Breite wächst nur massvoll auf grösseren Bildschirmen.
 
-### Maskottchen "Pucky"
+### Maskottchen "Bully"
 
 Ein freundlicher, comic-artiger Hockey-Puck mit Gesicht (`src/components/Maskottchen.tsx`), als
 einfache SVG-Illustration mit 3 Zuständen (keine Animation/Video):
@@ -556,7 +556,7 @@ können zusätzlich mit 1–5 Herzen bewerten, wie cool sie eine Übung generell
 
 ## Maskottchen-Update, Sprüche/Witze, Team-Löschen, Übungsorte (Phase 12)
 
-- **Maskottchen "Pucky":** optisch überarbeitet (`Maskottchen.tsx`) — kreisrundes Gesicht mit
+- **Maskottchen "Bully":** optisch überarbeitet (`Maskottchen.tsx`) — kreisrundes Gesicht mit
   dickem Ring statt der bisherigen breiten Puck-Ellipse, dazu ein kleiner Hockeyschläger, der
   hinter dem Kopf hervorschaut. Weiterhin dieselben 3 Zustände (neutral/freudig/aufmunternd) und
   dieselbe Komponenten-API — die neue Optik gilt automatisch überall, wo `Maskottchen` verwendet
