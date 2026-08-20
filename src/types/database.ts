@@ -140,6 +140,19 @@ export type MeineFreundeschallenge = {
   created_at: string;
 };
 
+// Passwort-Reset-Anfrage (Phase 11, Migration 0015): entsteht ausschliesslich
+// über die Edge Function "passwort-reset-anfragen", wird von einem Admin in
+// der Nutzerverwaltung abgearbeitet (Edge Function "admin-user-management",
+// Aktion "reset-password").
+export type PasswortResetAnfrage = {
+  id: string;
+  user_id: string;
+  angefragt_am: string;
+  erledigt: boolean;
+  erledigt_am: string | null;
+  erledigt_von: string | null;
+};
+
 export type PushSubscriptionRow = {
   id: string;
   user_id: string;
@@ -256,6 +269,12 @@ export type Database = {
         Insert: Partial<Freundeschallenge> &
           Pick<Freundeschallenge, 'kategorie' | 'ersteller_id' | 'empfaenger_id'>;
         Update: Partial<Freundeschallenge>;
+        Relationships: [];
+      };
+      passwort_reset_anfragen: {
+        Row: PasswortResetAnfrage;
+        Insert: Partial<PasswortResetAnfrage> & Pick<PasswortResetAnfrage, 'user_id'>;
+        Update: Partial<PasswortResetAnfrage>;
         Relationships: [];
       };
     };

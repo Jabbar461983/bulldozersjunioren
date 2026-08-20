@@ -17,8 +17,11 @@ jedem Ereignis.
 **Phase 9:** Team-Rangliste filtert nach Übungs-Kategorie statt Altersgruppe; jede Übung hat neu
 eine individuelle, admin-konfigurierbare Punktzahl (Standard 10 für neue Übungen) statt des
 bisherigen globalen Basiswerts.
-**Phase 10 (dieses Repo-Stadium):** Nutzerverwaltung im Admin-Bereich — Admins können Junioren,
-Trainer und weitere Admins anlegen, bearbeiten (Name, Rolle, Team) und löschen.
+**Phase 10:** Nutzerverwaltung im Admin-Bereich — Admins können Junioren, Trainer und weitere
+Admins anlegen, bearbeiten (Name, Rolle, Team) und löschen.
+**Phase 11 (dieses Repo-Stadium):** Passwort-Reset-Anfragen — ein Nutzer, der sein Passwort
+vergessen hat, meldet das über `/passwort-vergessen`; alle Admins werden per Push benachrichtigt
+und setzen das neue Passwort direkt in der Nutzerverwaltung (kein E-Mail-Versand nötig).
 
 ## Tech-Stack
 
@@ -61,7 +64,7 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0014) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0015) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
@@ -71,7 +74,8 @@ scripts/
    0012 die Freundeschallenge-Badges (siehe Abschnitt "Freundeschallenges" weiter unten), 0013
    stellt `team_rangliste()` von Altersgruppen- auf Kategorie-Filterung um, 0014 ergänzt die
    individuelle Punktzahl pro Übung (`uebungen.punkte`, Standard 10) inkl. Anpassung von
-   `submit_selbsteinschaetzung()`.
+   `submit_selbsteinschaetzung()`, 0015 legt die Tabelle `passwort_reset_anfragen` an (siehe
+   Abschnitt "Passwort-Reset-Anfragen" weiter unten).
 4. Unter **Authentication → Providers → Email** den Schalter **"Confirm email"**
    deaktivieren, damit neue Konten sofort ohne Klick auf einen Bestätigungslink eingeloggt
    werden (`AuthContext.signUp()` unterstützt beide Fälle: `needsEmailConfirmation` wird anhand
@@ -90,6 +94,11 @@ scripts/
    deployen (`supabase functions deploy admin-user-management`, siehe Abschnitt
    "Nutzerverwaltung" weiter unten). Kein zusätzliches Secret nötig — `SUPABASE_SERVICE_ROLE_KEY`
    steht in der Edge-Runtime bereits automatisch zur Verfügung.
+7. Für Passwort-Reset-Anfragen (Phase 11): zusätzlich `supabase functions deploy
+   passwort-reset-anfragen` (siehe Abschnitt "Passwort-Reset-Anfragen" weiter unten). Nutzt
+   dieselben VAPID-Secrets wie Schritt 5 für die Push-Benachrichtigung an Admins — ohne sie
+   funktioniert die Anfrage trotzdem, die Admins sehen offene Anfragen dann nur beim nächsten
+   Öffnen des Admin-Bereichs statt sofort per Push.
 
 ### 3. Umgebungsvariablen
 
@@ -513,11 +522,41 @@ bearbeiten und löschen lassen:
   es unwiderruflich ist und alle abhängigen Daten (Selbsteinschätzungen, Badges,
   Freundeschallenges, Push-Abos) per Kaskade mitgelöscht werden.
 
+## Passwort-Reset-Anfragen (Phase 11)
+
+Es gibt bewusst **keinen** klassischen Self-Service-Reset per E-Mail-Link
+(`supabase.auth.resetPasswordForEmail()`): Anders als bei der Registrierungsbestätigung (siehe
+"Confirm email" oben) gibt es dafür keinen Schalter zum Umgehen des Mailversands — ein solcher
+Reset-Link müsste immer per E-Mail zugestellt werden, und Supabases eingebauter Mailer ist ohne
+eigenen SMTP-Anbieter dafür nicht zuverlässig genug (siehe Setup-Schritt 4). Stattdessen läuft
+der Reset admin-gestützt und komplett ohne E-Mail-Versand:
+
+1. **Anfrage stellen** (`/passwort-vergessen`, `PasswortVergessenPage`): Der Nutzer gibt seine
+   E-Mail-Adresse ein. Der Endpunkt (`supabase/functions/passwort-reset-anfragen`) prüft
+   serverseitig per Service-Role-Key, ob dazu ein Konto existiert, legt bei Treffer eine Zeile in
+   `public.passwort_reset_anfragen` (Migration 0015) an und antwortet **immer** mit derselben
+   generischen Meldung — unabhängig vom Ergebnis, damit sich darüber nicht erraten lässt, welche
+   E-Mail-Adressen registriert sind. Eine bereits offene Anfrage desselben Kontos wird nicht
+   doppelt angelegt (kein Spam durch mehrfaches Absenden).
+2. **Admins benachrichtigen:** Bei einer neuen Anfrage sendet dieselbe Edge Function eine
+   Push-Benachrichtigung an alle Konten mit Rolle `admin` (dieselben VAPID-Secrets wie
+   `send-push-notification`). Ohne konfigurierte VAPID-Secrets entfällt nur der Push — die
+   Anfrage wird trotzdem gespeichert.
+3. **Übersicht im Admin-Bereich** (`PasswortResetAnfragenCard`, ganz oben auf `/admin`, direkt
+   sichtbar beim Öffnen): zeigt alle offenen Anfragen inkl. Name/E-Mail des betroffenen Kontos.
+   Die Karte blendet sich komplett aus, sobald keine offene Anfrage mehr vorliegt.
+4. **Passwort setzen:** Der Admin vergibt über ein Formular ein neues Passwort, das er dem Nutzer
+   auf einem anderen Weg mitteilt (persönlich, im Training, …). Das läuft über
+   `admin-user-management` (Aktion `reset-password`, `auth.admin.updateUserById()`) und markiert
+   die zugehörige Anfrage dabei gleich als erledigt. Alternativ lässt sich eine Anfrage auch ohne
+   Passwort-Reset direkt als "erledigt" markieren (z. B. wenn ausserhalb der App geklärt wurde).
+
 ## Bekannte Grenzen dieser Phase
 
 - Ranglisten (Team-/Altersgruppen-Vergleich) sind noch nicht umgesetzt.
 - Kalenderansicht des Verlaufs ist bewusst eine einfache Liste (kein echter Kalender).
-- E-Mail-Templates, Passwort-Reset-UI und Profilbearbeitung sind noch nicht umgesetzt.
+- E-Mail-Templates und Profilbearbeitung sind noch nicht umgesetzt; der Passwort-Reset läuft
+  bewusst admin-gestützt statt per E-Mail-Link (siehe Abschnitt "Passwort-Reset-Anfragen").
 - Web Push erfordert ein deploytes Supabase-Projekt mit Edge Functions + VAPID-Secrets; lokal ohne
   diese Konfiguration bleibt der Rest der App uneingeschränkt nutzbar.
 - Automatische Farbextraktion aus dem Logo gibt es nicht (laut Aufgabenstellung nicht nötig) —

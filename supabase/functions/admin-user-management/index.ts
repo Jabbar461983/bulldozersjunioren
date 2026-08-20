@@ -1,14 +1,15 @@
-// Supabase Edge Function (Deno): Nutzerverwaltung für Admins – Anlegen und
-// Löschen von Nutzerkonten (Junior/Trainer/Admin).
+// Supabase Edge Function (Deno): Nutzerverwaltung für Admins – Anlegen,
+// Löschen und Passwort-Reset von Nutzerkonten (Junior/Trainer/Admin).
 //
 // Warum eine Edge Function statt direktem Client-Zugriff: Ein neues Konto
 // braucht einen auth.users-Eintrag (Passwort, E-Mail-Bestätigung
 // überspringen), Löschen muss ebendiesen Eintrag entfernen (public.users
-// hängt per "on delete cascade" daran) – beides ist nur mit dem
-// Service-Role-Key möglich, den der Client aus Sicherheitsgründen nie sieht.
-// Mutieren bestehender Nutzer (Rolle/Team/Name) läuft dagegen weiterhin
-// direkt über den Client, da RLS (users_update_admin, Migration 0001) das
-// für Admins bereits erlaubt.
+// hängt per "on delete cascade" daran) und ein Passwort-Reset setzt direkt
+// das Passwort in auth.users – alles drei ist nur mit dem Service-Role-Key
+// möglich, den der Client aus Sicherheitsgründen nie sieht. Mutieren
+// bestehender Nutzer (Rolle/Team/Name) läuft dagegen weiterhin direkt über
+// den Client, da RLS (users_update_admin, Migration 0001) das für Admins
+// bereits erlaubt.
 //
 // SUPABASE_URL, SUPABASE_ANON_KEY und SUPABASE_SERVICE_ROLE_KEY sind in der
 // Edge-Runtime bereits vorhanden (kein zusätzliches Secret nötig).
@@ -32,7 +33,17 @@ interface DeleteBody {
   user_id: string;
 }
 
-type RequestBody = CreateBody | DeleteBody;
+interface ResetPasswordBody {
+  action: 'reset-password';
+  user_id: string;
+  password: string;
+  // Optional: schliesst die zugehörige Zeile in
+  // public.passwort_reset_anfragen (Migration 0015) gleich mit ab, damit sie
+  // aus der Admin-Übersicht offener Anfragen verschwindet.
+  request_id?: string;
+}
+
+type RequestBody = CreateBody | DeleteBody | ResetPasswordBody;
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -136,6 +147,30 @@ Deno.serve(async (req: Request) => {
     const { error } = await serviceClient.auth.admin.deleteUser(user_id);
     if (error) {
       return json({ error: error.message }, 500);
+    }
+
+    return json({ ok: true });
+  }
+
+  if (payload.action === 'reset-password') {
+    const { user_id, password, request_id } = payload;
+    if (!user_id || !password) {
+      return json({ error: 'user_id und password sind erforderlich.' }, 400);
+    }
+    if (password.length < 6) {
+      return json({ error: 'Das Passwort muss mindestens 6 Zeichen lang sein.' }, 400);
+    }
+
+    const { error } = await serviceClient.auth.admin.updateUserById(user_id, { password });
+    if (error) {
+      return json({ error: error.message }, 500);
+    }
+
+    if (request_id) {
+      await serviceClient
+        .from('passwort_reset_anfragen')
+        .update({ erledigt: true, erledigt_am: new Date().toISOString(), erledigt_von: caller.id })
+        .eq('id', request_id);
     }
 
     return json({ ok: true });
