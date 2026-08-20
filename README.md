@@ -72,9 +72,17 @@ scripts/
    stellt `team_rangliste()` von Altersgruppen- auf Kategorie-Filterung um, 0014 ergänzt die
    individuelle Punktzahl pro Übung (`uebungen.punkte`, Standard 10) inkl. Anpassung von
    `submit_selbsteinschaetzung()`.
-4. Optional für die lokale Entwicklung: Unter **Authentication → Providers → Email** die
-   E-Mail-Bestätigung deaktivieren, damit neue Konten sofort ohne Klick auf einen
-   Bestätigungslink eingeloggt werden.
+4. Unter **Authentication → Providers → Email** den Schalter **"Confirm email"**
+   deaktivieren, damit neue Konten sofort ohne Klick auf einen Bestätigungslink eingeloggt
+   werden (`AuthContext.signUp()` unterstützt beide Fälle: `needsEmailConfirmation` wird anhand
+   der von Supabase zurückgegebenen Session bestimmt). Das ist die empfohlene Einstellung auch
+   für den Produktivbetrieb, **ausser** ein eigener SMTP-Anbieter (z. B. Resend, Postmark, Brevo)
+   ist unter **Project Settings → Auth → SMTP Settings** hinterlegt: Supabases eingebauter Mailer
+   ist offiziell nur für Tests gedacht und stark rate-limitiert (in der Praxis oft nur 1–2
+   Mails/Stunde) — mit aktiviertem "Confirm email" aber ohne Custom SMTP bleiben neu registrierte
+   Nutzer sonst dauerhaft ohne Bestätigungsmail und damit ausgesperrt. Da Rollen/Teams ohnehin von
+   einem Admin über die Nutzerverwaltung (siehe unten) vergeben und geprüft werden, ist der Verzicht
+   auf die E-Mail-Bestätigung für einen vereinsinternen Tracker ein vertretbarer Trade-off.
 5. Für Web Push (Phase 4, optional): VAPID-Schlüssel generieren mit
    `npx web-push generate-vapid-keys`, dann die Edge Function deployen und die Secrets setzen
    (siehe Abschnitt "Web-Push-Benachrichtigungen" weiter unten).
