@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Lokaler Cache der Supabase-CLI (z. B. beim manuellen Deploy angelegt)
+supabase/.temp
+
 # Umgebungsvariablen (siehe .env.example)
 .env
 .env.*
