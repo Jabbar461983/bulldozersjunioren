@@ -74,6 +74,8 @@ export function LoginPage() {
 
         <div className="form-footer">
           Noch kein Konto? <Link to="/register">Jetzt registrieren</Link>
+          <br />
+          <Link to="/passwort-vergessen">Passwort vergessen?</Link>
         </div>
       </div>
     </div>

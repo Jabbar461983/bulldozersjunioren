@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleRoute } from './components/RoleRoute';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { PasswortVergessenPage } from './pages/PasswortVergessenPage';
 import { JuniorHome } from './pages/JuniorHome';
 import { JuniorUebungDetail } from './pages/JuniorUebungDetail';
 import { JuniorVerlauf } from './pages/JuniorVerlauf';
@@ -25,6 +26,7 @@ function App() {
             <Route path="/" element={<RoleRedirect />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/passwort-vergessen" element={<PasswortVergessenPage />} />
 
             <Route
               path="/junior"

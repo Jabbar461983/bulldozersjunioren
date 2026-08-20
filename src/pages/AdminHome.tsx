@@ -8,6 +8,7 @@ import { TeamBrandingForm } from '../components/TeamBrandingForm';
 import { FreundeschallengeKonfigurationCard } from '../components/FreundeschallengeKonfigurationCard';
 import { NutzerverwaltungManager } from '../components/NutzerverwaltungManager';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { PasswortResetAnfragenCard } from '../components/PasswortResetAnfragenCard';
 
 export function AdminHome() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -68,6 +69,8 @@ export function AdminHome() {
 
   return (
     <DashboardLayout>
+      <PasswortResetAnfragenCard />
+
       <div className="card">
         <h2>Team anlegen</h2>
         {error && <div className="alert-error">{error}</div>}

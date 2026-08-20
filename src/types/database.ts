@@ -168,6 +168,19 @@ export type UebungBeliebtheit = {
   anzahl_bewertungen: number;
 };
 
+// Passwort-Reset-Anfrage (Phase 14, Migration 0020): entsteht ausschliesslich
+// über die Edge Function "passwort-reset-anfragen", wird von einem Admin in
+// der Nutzerverwaltung abgearbeitet (Edge Function "admin-user-management",
+// Aktion "reset-password").
+export type PasswortResetAnfrage = {
+  id: string;
+  user_id: string;
+  angefragt_am: string;
+  erledigt: boolean;
+  erledigt_am: string | null;
+  erledigt_von: string | null;
+};
+
 export type PushSubscriptionRow = {
   id: string;
   user_id: string;
@@ -290,6 +303,12 @@ export type Database = {
         Row: UebungBewertung;
         Insert: Partial<UebungBewertung> & Pick<UebungBewertung, 'junior_id' | 'uebung_id' | 'herzen'>;
         Update: Partial<UebungBewertung>;
+        Relationships: [];
+      };
+      passwort_reset_anfragen: {
+        Row: PasswortResetAnfrage;
+        Insert: Partial<PasswortResetAnfrage> & Pick<PasswortResetAnfrage, 'user_id'>;
+        Update: Partial<PasswortResetAnfrage>;
         Relationships: [];
       };
     };
