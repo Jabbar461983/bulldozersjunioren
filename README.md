@@ -81,7 +81,7 @@ scripts/
 1. Neues Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Unter **Project Settings → API** die `Project URL` und den `anon public` Key kopieren.
 3. Das Datenbankschema anlegen: Die Migrationen unter `supabase/migrations/` der Reihe nach
-   (0001 → 0020) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
+   (0001 → 0021) im **SQL Editor** des Supabase-Dashboards ausführen (oder via Supabase CLI:
    `supabase db push`, sofern das Projekt lokal verlinkt ist). Migration 0002 legt u. a. den
    Storage-Bucket `uebung-bilder` an, 0003 die Funktion `submit_selbsteinschaetzung()`, 0004 das
    komplette Gamification-Schema (Level-/Streak-Funktionen, Badge-Katalog, Push-Abos), 0005 den
@@ -99,7 +99,9 @@ scripts/
    Selbsteinschätzungen auf maximal 3 pro Übung und Tag (`submit_selbsteinschaetzung()`), 0019
    ergänzt zusätzlich ein Tempolimit von maximal 3 Selbsteinschätzungen pro Junior innerhalb von
    5 Minuten, übungsübergreifend, 0020 legt die Tabelle `passwort_reset_anfragen` an (siehe
-   Abschnitt "Passwort-Reset-Anfragen" weiter unten).
+   Abschnitt "Passwort-Reset-Anfragen" weiter unten), 0021 erlaubt bis zu zwei gleichzeitige
+   Freundeschallenges pro Junior statt bisher einer (siehe Abschnitt "Freundeschallenges" weiter
+   oben).
 4. Unter **Authentication → Providers → Email** den Schalter **"Confirm email"**
    deaktivieren, damit neue Konten sofort ohne Klick auf einen Bestätigungslink eingeloggt
    werden (`AuthContext.signUp()` unterstützt beide Fälle: `needsEmailConfirmation` wird anhand
@@ -488,10 +490,15 @@ und `src/pages/JuniorFreundeschallenge.tsx` (`/junior/freundeschallenge`, verlin
   an, `freundeschallenge_antworten(p_challenge_id, p_annehmen)` nimmt sie an (Start = heute) oder
   lehnt sie ab. Beide sind SECURITY-DEFINER-Funktionen, die `auth.uid()` fest an Ersteller/Empfänger
   binden.
-- **Nur eine aktive Challenge pro Junior:** `freundeschallenge_anfragen()` prüft serverseitig, ob
-  Ersteller **oder** Empfänger bereits eine Challenge im Status `angefragt`/`aktiv` haben, und bricht
-  sonst mit der Fehlermeldung "Aktuell schon eine Freundeschallenge am Laufen." ab – das Frontend
-  zeigt diese Meldung unverändert im Fehlerbereich an.
+- **Bis zu zwei aktive Challenges pro Junior, nie zwei in derselben Kategorie** (Migration 0021):
+  `freundeschallenge_anfragen()` prüft serverseitig für Ersteller **und** Empfänger je zwei Dinge —
+  (1) weniger als 2 Challenges im Status `angefragt`/`aktiv` und (2) keine davon bereits in der
+  gewählten Kategorie — und bricht sonst mit einer Fehlermeldung ab, die die betroffene Person
+  benennt ("Du hast …" bzw. "Sorry, {Vorname} hat …"). Das Frontend zeigt diese Meldung unverändert
+  im Fehlerbereich an und blendet aus Komfortgründen zusätzlich clientseitig vor: Kategorien, in
+  denen der eigene Junior schon eine offene Challenge hat, fehlen im Auswahl-Dropdown, und ist das
+  eigene Kontingent (2) bereits ausgeschöpft, verschwindet das Formular "Neue Freundeschallenge
+  senden" komplett.
 - **Fortschritt & Scheitern:** `submit_selbsteinschaetzung()` ruft nach jeder Einschätzung
   `aktualisiere_freundeschallenge_bei_einschaetzung()` auf: Bei "geschafft" in der passenden
   Kategorie zählt der Tag für die jeweilige Person (mehrfache Einschätzungen am selben Tag zählen
@@ -511,11 +518,12 @@ und `src/pages/JuniorFreundeschallenge.tsx` (`/junior/freundeschallenge`, verlin
   geprüft wurde, dass zwischen Aufrufer und Ziel überhaupt eine `freundeschallenges`-Zeile existiert
   (verhindert Missbrauch als beliebiger Push-Spam-Versand an fremde Nutzer).
 - **Sichtbarkeit:** `meine_freundeschallengen()` liefert (wie `rangliste()`) nur Vorname +
-  Nachname-Initiale der Gegenperson. Die Auswahl möglicher Herausforderungspartner lädt
-  `rangliste(p_team_id: null)` — also alle Junioren aller Teams —, zeigt dabei aber zusätzlich den
-  Teamnamen an, da Vorname + Initiale allein über Teams hinweg nicht mehr eindeutig sein muss.
-  `freundeschallenge_anfragen()` prüfte ohnehin nie auf gleiches Team (nur `rolle = 'junior'`); die
-  Einschränkung bestand ausschliesslich im Auswahl-Dropdown des Frontends.
+  Nachname-Initiale der Gegenperson. Die Auswahl möglicher Herausforderungspartner lädt seit
+  Migration 0021 `freundeschallenge_kandidaten()` statt `rangliste()` — liefert alle Junioren aller
+  Teams (`freundeschallenge_anfragen()` prüft ohnehin nie auf gleiches Team), aber ausschliesslich
+  solche mit freier Kapazität (< 2 offene Challenges), damit im Dropdown niemand zur Auswahl steht,
+  bei dem die Anfrage ohnehin abgelehnt würde. Ein zusätzliches Team-Filter-Feld im Formular
+  schränkt die Liste optional weiter ein (ohne Auswahl: alle Teams).
 - **Badges (Migration 0012):** "Freundeschallenge-Neuling/-Ass/-Meister" für 3/5/10 erfolgreich
   abgeschlossene Freundeschallenges sowie "Teamplayer" für 5 erfolgreiche Freundeschallenges mit
   jeweils unterschiedlichen Gegnern (`kriterium_typ` `freundeschallenge_erfolgreich` bzw.

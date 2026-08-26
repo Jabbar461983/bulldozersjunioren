@@ -6,19 +6,21 @@ import { useToast } from '../contexts/ToastContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { FREUNDESCHALLENGE_STATUS_LABELS, KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import { sendeFreundeschallengePush } from '../lib/push';
-import type { MeineFreundeschallenge, RanglisteEintrag, UebungKategorie } from '../types/database';
+import type { FreundeschallengeKandidat, MeineFreundeschallenge, Team, UebungKategorie } from '../types/database';
 
 export function JuniorFreundeschallenge() {
   const { profile } = useAuth();
   const { showToast } = useToast();
 
   const [challenges, setChallenges] = useState<MeineFreundeschallenge[]>([]);
-  const [andereJunioren, setAndereJunioren] = useState<RanglisteEintrag[]>([]);
+  const [kandidaten, setKandidaten] = useState<FreundeschallengeKandidat[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [filterTeam, setFilterTeam] = useState('');
   const [empfaengerId, setEmpfaengerId] = useState('');
-  const [kategorie, setKategorie] = useState<UebungKategorie>(KATEGORIEN[0]);
+  const [kategorie, setKategorie] = useState<UebungKategorie | ''>('');
   const [sending, setSending] = useState(false);
 
   const [antwortBusyId, setAntwortBusyId] = useState<string | null>(null);
@@ -28,18 +30,23 @@ export function JuniorFreundeschallenge() {
     setLoading(true);
     setError(null);
 
-    // Herausfordern darf man Junioren aus allen Teams (nicht nur dem eigenen),
-    // daher rangliste() bewusst ohne Team-Filter (p_team_id: null) laden.
-    const [challengesResult, juniorenResult] = await Promise.all([
+    // Herausfordern darf man Junioren aus allen Teams (nicht nur dem eigenen);
+    // freundeschallenge_kandidaten() liefert bereits nur noch Junioren mit
+    // freier Kapazität (< 2 offene Challenges).
+    const [challengesResult, kandidatenResult, teamsResult] = await Promise.all([
       supabase.rpc('meine_freundeschallengen'),
-      supabase.rpc('rangliste', { p_team_id: null }),
+      supabase.rpc('freundeschallenge_kandidaten'),
+      supabase.from('teams').select('*').order('name'),
     ]);
 
     if (challengesResult.error) setError(challengesResult.error.message);
     else setChallenges(challengesResult.data ?? []);
 
-    if (juniorenResult.error) setError(juniorenResult.error.message);
-    else setAndereJunioren((juniorenResult.data ?? []).filter((k) => k.id !== profile.id));
+    if (kandidatenResult.error) setError(kandidatenResult.error.message);
+    else setKandidaten(kandidatenResult.data ?? []);
+
+    if (teamsResult.error) setError(teamsResult.error.message);
+    else setTeams(teamsResult.data ?? []);
 
     setLoading(false);
   }, [profile]);
@@ -48,12 +55,22 @@ export function JuniorFreundeschallenge() {
     void load();
   }, [load]);
 
-  const aktuelle = challenges.find((c) => c.status === 'angefragt' || c.status === 'aktiv');
-  const verlauf = challenges.filter((c) => c !== aktuelle);
+  // Bis zu zwei gleichzeitig laufende/angefragte Challenges sind erlaubt,
+  // nie zwei in derselben Kategorie (server-seitig in
+  // freundeschallenge_anfragen() durchgesetzt).
+  const aktuelleListe = challenges.filter((c) => c.status === 'angefragt' || c.status === 'aktiv');
+  const verlauf = challenges.filter((c) => c.status !== 'angefragt' && c.status !== 'aktiv');
+
+  const belegteKategorien = new Set(aktuelleListe.map((c) => c.kategorie));
+  const verfuegbareKategorien = KATEGORIEN.filter((k) => !belegteKategorien.has(k));
+
+  const kandidatenGefiltert = kandidaten.filter((k) => !filterTeam || k.team_id === filterTeam);
+
+  const kannNeueChallengeStarten = aktuelleListe.length < 2;
 
   async function handleAnfragen(e: FormEvent) {
     e.preventDefault();
-    if (!profile || !empfaengerId) return;
+    if (!profile || !empfaengerId || !kategorie) return;
     setError(null);
     setSending(true);
     try {
@@ -70,6 +87,7 @@ export function JuniorFreundeschallenge() {
       });
 
       setEmpfaengerId('');
+      setKategorie('');
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Anfrage konnte nicht gesendet werden.');
@@ -118,9 +136,10 @@ export function JuniorFreundeschallenge() {
       <div className="card" style={{ marginTop: 16 }}>
         <h2>🤝 Freundeschallenge</h2>
         <p>
-          Spanne mit einem anderen Junior:in zusammen: Wählt eine Kategorie und macht 3 Tage in
-          Folge eine Übung daraus. Schaffen es beide, gibt es Extrapunkte – schafft es jemand
-          nicht, ist die Challenge ohne Punkte beendet.
+          Spanne mit einem Kollegen oder einer Kollegin zusammen: Wählt eine Kategorie und macht 3
+          Tage in Folge eine Übung daraus. Schaffen es beide, gibt es Extrapunkte – schafft es
+          jemand nicht, ist die Challenge ohne Punkte beendet. Bis zu zwei Challenges gleichzeitig
+          sind möglich, aber nie zwei in derselben Kategorie.
         </p>
       </div>
 
@@ -136,60 +155,90 @@ export function JuniorFreundeschallenge() {
         </div>
       )}
 
-      {!loading && aktuelle && (
+      {!loading && aktuelleListe.length > 0 && (
         <div className="card">
-          <h2>Aktuelle Challenge</h2>
-          <div className="history-row">
-            <span>
-              <span className="kategorie-icon">{KATEGORIE_ICONS[aktuelle.kategorie]}</span>
-              {KATEGORIE_LABELS[aktuelle.kategorie]}
-            </span>
-            <span>
-              mit {aktuelle.gegner_vorname} {aktuelle.gegner_nachname_initiale}.
-            </span>
-            <span className="tag">{FREUNDESCHALLENGE_STATUS_LABELS[aktuelle.status]}</span>
-          </div>
+          <h2>{aktuelleListe.length === 1 ? 'Aktuelle Challenge' : 'Aktuelle Challenges'}</h2>
+          {aktuelleListe.map((aktuelle, index) => (
+            <div
+              key={aktuelle.id}
+              style={
+                index < aktuelleListe.length - 1
+                  ? { marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid var(--color-border)' }
+                  : undefined
+              }
+            >
+              <div className="history-row">
+                <span>
+                  <span className="kategorie-icon">{KATEGORIE_ICONS[aktuelle.kategorie]}</span>
+                  {KATEGORIE_LABELS[aktuelle.kategorie]}
+                </span>
+                <span>
+                  mit {aktuelle.gegner_vorname} {aktuelle.gegner_nachname_initiale}.
+                </span>
+                <span className="tag">{FREUNDESCHALLENGE_STATUS_LABELS[aktuelle.status]}</span>
+              </div>
 
-          {aktuelle.status === 'aktiv' && (
-            <p style={{ marginTop: 8 }}>
-              Du: Tag {aktuelle.meine_tage}/3 · {aktuelle.gegner_vorname}: Tag {aktuelle.gegner_tage}/3
-            </p>
-          )}
+              {aktuelle.status === 'aktiv' && (
+                <p style={{ marginTop: 8 }}>
+                  Du: Tag {aktuelle.meine_tage}/3 · {aktuelle.gegner_vorname}: Tag{' '}
+                  {aktuelle.gegner_tage}/3
+                </p>
+              )}
 
-          {aktuelle.status === 'angefragt' && aktuelle.bin_ich_ersteller && (
-            <p style={{ marginTop: 8 }}>Warte auf Antwort von {aktuelle.gegner_vorname} …</p>
-          )}
+              {aktuelle.status === 'angefragt' && aktuelle.bin_ich_ersteller && (
+                <p style={{ marginTop: 8 }}>Warte auf Antwort von {aktuelle.gegner_vorname} …</p>
+              )}
 
-          {aktuelle.status === 'angefragt' && !aktuelle.bin_ich_ersteller && (
-            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-              <button
-                className="btn-primary"
-                style={{ flex: 1, width: 'auto' }}
-                disabled={antwortBusyId === aktuelle.id}
-                onClick={() => void handleAntwort(aktuelle, true)}
-              >
-                Annehmen
-              </button>
-              <button
-                className="btn-secondary"
-                style={{ flex: 1 }}
-                disabled={antwortBusyId === aktuelle.id}
-                onClick={() => void handleAntwort(aktuelle, false)}
-              >
-                {antwortBusyId === aktuelle.id ? 'Wird gespeichert …' : 'Ablehnen'}
-              </button>
+              {aktuelle.status === 'angefragt' && !aktuelle.bin_ich_ersteller && (
+                <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                  <button
+                    className="btn-primary"
+                    style={{ flex: 1, width: 'auto' }}
+                    disabled={antwortBusyId === aktuelle.id}
+                    onClick={() => void handleAntwort(aktuelle, true)}
+                  >
+                    Annehmen
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    style={{ flex: 1 }}
+                    disabled={antwortBusyId === aktuelle.id}
+                    onClick={() => void handleAntwort(aktuelle, false)}
+                  >
+                    {antwortBusyId === aktuelle.id ? 'Wird gespeichert …' : 'Ablehnen'}
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          ))}
         </div>
       )}
 
-      {!loading && !aktuelle && (
+      {!loading && kannNeueChallengeStarten && (
         <div className="card">
           <h2>Neue Freundeschallenge senden</h2>
-          {andereJunioren.length === 0 ? (
-            <p>Keine anderen Junioren gefunden.</p>
+          {kandidaten.length === 0 ? (
+            <p>Aktuell hat niemand freie Kapazität für eine neue Freundeschallenge.</p>
           ) : (
             <form onSubmit={handleAnfragen}>
+              <div className="field">
+                <label htmlFor="challenge-team">Team</label>
+                <select
+                  id="challenge-team"
+                  value={filterTeam}
+                  onChange={(e) => {
+                    setFilterTeam(e.target.value);
+                    setEmpfaengerId('');
+                  }}
+                >
+                  <option value="">Alle Teams</option>
+                  {teams.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="field">
                 <label htmlFor="challenge-empfaenger">Mit wem möchtest du zusammenspannen?</label>
                 <select
@@ -199,29 +248,40 @@ export function JuniorFreundeschallenge() {
                   onChange={(e) => setEmpfaengerId(e.target.value)}
                 >
                   <option value="">Bitte wählen …</option>
-                  {andereJunioren.map((k) => (
+                  {kandidatenGefiltert.map((k) => (
                     <option key={k.id} value={k.id}>
                       {k.vorname} {k.nachname_initiale}.
                       {k.team_name ? ` (${k.team_name})` : ''}
                     </option>
                   ))}
                 </select>
+                {kandidatenGefiltert.length === 0 && (
+                  <small style={{ color: 'var(--color-text-muted)' }}>
+                    Niemand in diesem Team hat gerade freie Kapazität.
+                  </small>
+                )}
               </div>
               <div className="field">
                 <label htmlFor="challenge-kategorie">Kategorie</label>
                 <select
                   id="challenge-kategorie"
+                  required
                   value={kategorie}
-                  onChange={(e) => setKategorie(e.target.value as UebungKategorie)}
+                  onChange={(e) => setKategorie(e.target.value as UebungKategorie | '')}
                 >
-                  {KATEGORIEN.map((k) => (
+                  <option value="">Bitte wählen …</option>
+                  {verfuegbareKategorien.map((k) => (
                     <option key={k} value={k}>
                       {KATEGORIE_LABELS[k]}
                     </option>
                   ))}
                 </select>
               </div>
-              <button className="btn-primary" type="submit" disabled={sending || !empfaengerId}>
+              <button
+                className="btn-primary"
+                type="submit"
+                disabled={sending || !empfaengerId || !kategorie}
+              >
                 {sending ? 'Wird gesendet …' : 'Challenge senden'}
               </button>
             </form>

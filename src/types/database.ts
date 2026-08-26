@@ -126,6 +126,17 @@ export type FreundeschallengeKonfiguration = {
   extra_punkte: number;
 };
 
+// Zeile aus public.freundeschallenge_kandidaten(): Junioren, die aktuell noch
+// als Gegner infrage kommen (< 2 offene Challenges), gleiches
+// Datenschutz-Muster wie RanglisteEintrag (nur Vorname + Nachname-Initiale).
+export type FreundeschallengeKandidat = {
+  id: string;
+  vorname: string;
+  nachname_initiale: string | null;
+  team_id: string | null;
+  team_name: string | null;
+};
+
 // Zeile aus public.meine_freundeschallengen(): bereits um den Anzeigenamen
 // des Gegners angereichert (Vorname + Nachname-Initiale, gleiches
 // Datenschutz-Muster wie bei RanglisteEintrag) und relativ zum aufrufenden
@@ -354,6 +365,10 @@ export type Database = {
       meine_freundeschallengen: {
         Args: Record<PropertyKey, never>;
         Returns: MeineFreundeschallenge[];
+      };
+      freundeschallenge_kandidaten: {
+        Args: Record<PropertyKey, never>;
+        Returns: FreundeschallengeKandidat[];
       };
       bewerte_uebung: {
         Args: { p_uebung_id: string; p_herzen: number };
