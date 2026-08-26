@@ -29,6 +29,14 @@ export function RanglisteCard() {
     void loadTeams();
   }, []);
 
+  // Rangliste zeigt standardmässig das eigene Team an, statt aller Teams –
+  // erst nach dem Laden des Profils bekannt, daher per Effekt statt direkt im
+  // useState-Initialwert gesetzt. Läuft nur einmal (pro Team-Wechsel), ein
+  // späterer manueller Wechsel des Filters wird dadurch nicht überschrieben.
+  useEffect(() => {
+    if (profile?.team_id) setFilterTeam(profile.team_id);
+  }, [profile?.team_id]);
+
   const loadRangliste = useCallback(async () => {
     setLoading(true);
     setError(null);
