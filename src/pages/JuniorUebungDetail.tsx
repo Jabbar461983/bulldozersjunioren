@@ -90,6 +90,7 @@ export function JuniorUebungDetail() {
 
   const [meineBewertung, setMeineBewertung] = useState<number | null>(null);
   const [bewertungSpeichern, setBewertungSpeichern] = useState(false);
+  const [bewertungError, setBewertungError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id || !profile) return;
@@ -249,20 +250,19 @@ export function JuniorUebungDetail() {
   async function handleBewertung(wert: number) {
     if (!id) return;
     const vorherigeBewertung = meineBewertung;
+    setBewertungError(null);
     setMeineBewertung(wert);
     setBewertungSpeichern(true);
-    try {
-      const { error } = await supabase.rpc('bewerte_uebung', {
-        p_uebung_id: id,
-        p_herzen: wert,
-      });
-      if (error) throw error;
-    } catch (err) {
+
+    const { error } = await supabase.rpc('bewerte_uebung', {
+      p_uebung_id: id,
+      p_herzen: wert,
+    });
+    if (error) {
       setMeineBewertung(vorherigeBewertung);
-      setError(err instanceof Error ? err.message : 'Bewertung konnte nicht gespeichert werden.');
-    } finally {
-      setBewertungSpeichern(false);
+      setBewertungError(error.message);
     }
+    setBewertungSpeichern(false);
   }
 
   if (loading) {
@@ -314,6 +314,21 @@ export function JuniorUebungDetail() {
           <h2 style={{ margin: 0 }}>{feier}</h2>
         </div>
       )}
+
+      <div className="card">
+        <h2>Wie cool findest du diese Übung?</h2>
+        {bewertungError && <div className="alert-error">{bewertungError}</div>}
+        <div className="field">
+          <HerzenAuswahl
+            value={meineBewertung}
+            onChange={(wert) => void handleBewertung(wert)}
+            readOnly={bewertungSpeichern}
+          />
+          {bewertungSpeichern && (
+            <small style={{ color: 'var(--color-text-muted)' }}>Wird gespeichert …</small>
+          )}
+        </div>
+      </div>
 
       <div className="card">
         <h2>Selbsteinschätzung</h2>
@@ -370,20 +385,6 @@ export function JuniorUebungDetail() {
             )}
           </>
         )}
-      </div>
-
-      <div className="card">
-        <h2>Wie cool findest du diese Übung?</h2>
-        <div className="field">
-          <HerzenAuswahl
-            value={meineBewertung}
-            onChange={(wert) => void handleBewertung(wert)}
-            readOnly={bewertungSpeichern}
-          />
-          {bewertungSpeichern && (
-            <small style={{ color: 'var(--color-text-muted)' }}>Wird gespeichert …</small>
-          )}
-        </div>
       </div>
 
       <div className="card">
