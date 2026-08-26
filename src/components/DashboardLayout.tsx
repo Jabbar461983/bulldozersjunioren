@@ -17,7 +17,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {team?.logo_url ? (
             <img src={team.logo_url} alt={team.name} className="dashboard-logo" />
           ) : (
-            <div className="brand-badge">🏒</div>
+            <img
+              src="/logo-bulldozers_farbig.png"
+              alt="Streethockeyclub Bulldozers"
+              className="dashboard-logo"
+            />
           )}
           <div>
             <h1 style={{ fontSize: '1.4rem', margin: 0 }}>
