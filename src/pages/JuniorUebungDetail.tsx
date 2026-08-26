@@ -278,7 +278,7 @@ export function JuniorUebungDetail() {
       <DashboardLayout>
         <div className="card">
           <p>Übung nicht gefunden.</p>
-          <Link to="/junior">← Zurück zur Übersicht</Link>
+          <Link to="/junior">← Zurück</Link>
         </div>
       </DashboardLayout>
     );
@@ -286,7 +286,7 @@ export function JuniorUebungDetail() {
 
   return (
     <DashboardLayout>
-      <Link to="/junior">← Zurück zur Übersicht</Link>
+      <Link to="/junior">← Zurück</Link>
 
       <div className="card" style={{ marginTop: 16 }}>
         <span className="tag">

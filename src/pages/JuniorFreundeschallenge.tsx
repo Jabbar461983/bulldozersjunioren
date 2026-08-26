@@ -131,7 +131,7 @@ export function JuniorFreundeschallenge() {
 
   return (
     <DashboardLayout>
-      <Link to="/junior">← Zurück zur Übersicht</Link>
+      <Link to="/junior">← Zurück</Link>
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>🤝 Freundeschallenge</h2>
