@@ -54,7 +54,6 @@ const WITZE = [
   'Was macht ein Pinguin im Sommer? Er schwitzt im Frack!',
   'Warum können Bienen so gut zählen? Weil sie in Waben leben.',
   'Wie nennt man einen Boomerang, der nicht zurückkommt? Einen Stock.',
-  'Was ist schwarz-weiss und rutscht über das Eis? Ein Zebra auf Schlittschuhen!',
   'Warum hat der Kalender Angst? Seine Tage sind gezählt.',
   'Wieso schwimmen Haie nur im Salzwasser? Pfeffer würde sie zum Niesen bringen.',
   'Was sagt ein Stock zum anderen? Lass uns zusammenhalten!',

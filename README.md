@@ -36,9 +36,14 @@ wöchentlich automatisch abwechseln — ausser ein Junior hat gerade eine aktive
 dieser Kategorie laufen, dann bleiben alle Übungen sichtbar. Ausserdem: das Dashboard (Admin-/
 Trainer-Tabellen) nutzt auf breiten Bildschirmen (PC) jetzt mehr Platz, damit z. B. die
 Bearbeiten-/Löschen-Buttons in der Übungen-/Nutzerverwaltung nicht mehr abgeschnitten werden.
-**Phase 14 (dieses Repo-Stadium):** Passwort-Reset-Anfragen — ein Nutzer, der sein Passwort
+**Phase 14:** Passwort-Reset-Anfragen — ein Nutzer, der sein Passwort
 vergessen hat, meldet das über `/passwort-vergessen`; alle Admins werden per Push benachrichtigt
 und setzen das neue Passwort direkt in der Nutzerverwaltung (kein E-Mail-Versand nötig).
+**Phase 15 (dieses Repo-Stadium):** Maskottchen "Bully" als oranger Streethockey-Ball statt
+Hockey-Puck neu gezeichnet (Design-Vorlage vom Verein) — dieselben 3 Zustände und Komponenten-API.
+Ausserdem: die Begrüssungs- und Witz-Listen enthielten noch vereinzelt Eishockey-Bezüge
+("Eis", "Schlittschuhe") aus der ursprünglichen Puck-Optik — diese wurden entfernt, passend zum
+Streethockey-Kontext des Vereins.
 
 ## Tech-Stack
 
@@ -436,7 +441,7 @@ Durchgängig überarbeitet für eine junge, mobile Zielgruppe (`src/index.css`/`
 
 ### Maskottchen "Bully"
 
-Ein freundlicher, comic-artiger Hockey-Puck mit Gesicht (`src/components/Maskottchen.tsx`), als
+Ein freundlicher, oranger Streethockey-Ball mit Gesicht (`src/components/Maskottchen.tsx`), als
 einfache SVG-Illustration mit 3 Zuständen (keine Animation/Video):
 
 - **neutral** – Begrüsst den Junior mit einem zufälligen Spruch auf der Startseite (`/junior`).

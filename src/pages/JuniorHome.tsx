@@ -44,7 +44,6 @@ const BEGRUESSUNGEN = [
   'Auf zu neuen Bestleistungen!',
   'Bereit für die nächste Challenge?',
   'Dein Maskottchen freut sich auf dich!',
-  'Auf geht’s, das Eis wartet nicht!',
 ];
 
 export function JuniorHome() {
