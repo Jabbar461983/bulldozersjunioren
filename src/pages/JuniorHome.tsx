@@ -11,7 +11,7 @@ import { KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants'
 import { effektiverTagesStreak, levelFortschritt } from '../lib/gamification';
 import type { MeineFreundeschallenge, Uebung, UebungBeliebtheit, UebungKategorie } from '../types/database';
 
-const ANZAHL_ROTATION = 3;
+const ANZAHL_ROTATION = 5;
 const WOCHE_MS = 1000 * 60 * 60 * 24 * 7;
 
 // Einfacher, deterministischer Hash für die wöchentliche Übungsrotation:
