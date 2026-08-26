@@ -6,7 +6,7 @@ interface MaskottchenProps {
   size?: number;
 }
 
-// "Pucky" – das Maskottchen der Bulldozers Challenge: ein freundliches,
+// "Bully" – das Maskottchen der Bulldozers Challenge: ein freundliches,
 // rundes Gesicht mit dickem Ring und einem kleinen Hockeyschläger, der
 // dahinter hervorschaut. Bewusst in einer eigenen, immer gleichen Farbe
 // gehalten (statt Team-Theme-Farben), damit er als wiedererkennbarer
@@ -14,7 +14,7 @@ interface MaskottchenProps {
 export function Maskottchen({ zustand = 'neutral', text, size = 96 }: MaskottchenProps) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-      <PuckyGesicht zustand={zustand} size={size} />
+      <BullyGesicht zustand={zustand} size={size} />
       {text && (
         <div className="speech-bubble" role="status">
           {text}
@@ -24,14 +24,14 @@ export function Maskottchen({ zustand = 'neutral', text, size = 96 }: Maskottche
   );
 }
 
-function PuckyGesicht({ zustand, size }: { zustand: MaskottchenZustand; size: number }) {
+function BullyGesicht({ zustand, size }: { zustand: MaskottchenZustand; size: number }) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 200 200"
       role="img"
-      aria-label={`Maskottchen Pucky, Ausdruck: ${zustand}`}
+      aria-label={`Maskottchen Bully, Ausdruck: ${zustand}`}
       style={{ flexShrink: 0 }}
     >
       {zustand === 'freudig' && (

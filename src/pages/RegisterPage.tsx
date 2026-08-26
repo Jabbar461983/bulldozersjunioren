@@ -19,11 +19,14 @@ export function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rolle, setRolle] = useState<Rolle>('junior');
+  const [altersgruppe, setAltersgruppe] = useState<string>('');
   const [teamId, setTeamId] = useState('');
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [adminAlreadyExists, setAdminAlreadyExists] = useState(true);
   const [loadingOptions, setLoadingOptions] = useState(true);
+
+  const ALTERSGRUPPEN = ['U9', 'U12', 'U15', 'U18'] as const;
 
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -52,10 +55,18 @@ export function RegisterPage() {
     : ['junior', 'trainer', 'admin'];
 
   const needsTeam = rolle === 'junior' || rolle === 'trainer';
+  const filteredTeams = altersgruppe
+    ? teams.filter((t) => t.altersgruppe === altersgruppe)
+    : [];
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (needsTeam && !altersgruppe) {
+      setError('Bitte wähle deine Altersgruppe aus.');
+      return;
+    }
 
     if (needsTeam && !teamId) {
       setError('Bitte wähle ein Team aus.');
@@ -173,30 +184,58 @@ export function RegisterPage() {
             </div>
 
             {needsTeam && (
-              <div className="field">
-                <label htmlFor="team">Team</label>
-                <select
-                  id="team"
-                  required
-                  value={teamId}
-                  onChange={(e) => setTeamId(e.target.value)}
-                  disabled={loadingOptions}
-                >
-                  <option value="" disabled>
-                    {teams.length === 0 ? 'Noch keine Teams vorhanden' : 'Team wählen …'}
-                  </option>
-                  {teams.map((team) => (
-                    <option key={team.id} value={team.id}>
-                      {team.name} ({team.altersgruppe})
-                    </option>
-                  ))}
-                </select>
-                {teams.length === 0 && !loadingOptions && (
-                  <small style={{ color: 'var(--color-text-muted)' }}>
-                    Noch kein Team angelegt. Ein Admin muss zuerst ein Team erstellen.
-                  </small>
+              <>
+                <div className="field">
+                  <label>Altersgruppe</label>
+                  <div className="radio-group">
+                    {ALTERSGRUPPEN.map((ag) => (
+                      <label key={ag}>
+                        <input
+                          type="radio"
+                          name="altersgruppe"
+                          value={ag}
+                          checked={altersgruppe === ag}
+                          onChange={(e) => {
+                            setAltersgruppe(e.target.value);
+                            setTeamId('');
+                          }}
+                        />
+                        {ag}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {altersgruppe && (
+                  <div className="field">
+                    <label htmlFor="team">Team</label>
+                    <select
+                      id="team"
+                      required
+                      value={teamId}
+                      onChange={(e) => setTeamId(e.target.value)}
+                      disabled={loadingOptions || filteredTeams.length === 0}
+                    >
+                      <option value="" disabled>
+                        {filteredTeams.length === 0
+                          ? 'Keine Teams für diese Altersgruppe'
+                          : 'Team wählen …'}
+                      </option>
+                      {filteredTeams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.name}
+                        </option>
+                      ))}
+                    </select>
+                    {filteredTeams.length === 0 && !loadingOptions && (
+                      <small style={{ color: 'var(--color-text-muted)' }}>
+                        Keine Teams für {altersgruppe} angelegt. Ein Admin muss zuerst ein Team
+                        erstellen.
+                      </small>
+                    )}
+                  </div>
                 )}
-              </div>
+              </>
             )}
 
             <button className="btn-primary" type="submit" disabled={submitting}>
