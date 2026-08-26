@@ -194,6 +194,18 @@ export function JuniorHome() {
 
         {!filterKategorie && <p>Wähle eine Kategorie, um passende Übungen zu sehen.</p>}
 
+        {filterKategorie && !loading && uebungen.length > 0 && (
+          <small
+            style={{
+              display: 'block',
+              color: 'var(--color-text-muted)',
+              marginBottom: 8,
+            }}
+          >
+            🏠 Zuhause geeignet · 🏒 Auf dem Spielfeld geeignet
+          </small>
+        )}
+
         {filterKategorie && loading && <p>Wird geladen …</p>}
         {filterKategorie && !loading && uebungen.length === 0 && (
           <p>Keine Übungen für deine Altersgruppe gefunden.</p>
