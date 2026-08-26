@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { SterneAuswahl } from '../components/SterneAuswahl';
 import { KATEGORIE_ICONS, KATEGORIE_LABELS } from '../lib/constants';
 import type { Selbsteinschaetzung, Uebung } from '../types/database';
 
@@ -78,7 +77,6 @@ export function JuniorVerlauf() {
                   </div>
                 </div>
                 <span className="tag">{v.geschafft ? 'Geschafft' : 'Nicht geschafft'}</span>
-                <SterneAuswahl value={v.gefuehl_sterne} readOnly />
                 <span style={{ color: 'var(--color-text-muted)' }}>+{v.punkte_vergeben} Pkt.</span>
               </div>
             );

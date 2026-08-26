@@ -4,11 +4,12 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { SterneAuswahl } from '../components/SterneAuswahl';
 import { HerzenAuswahl } from '../components/HerzenAuswahl';
 import { Maskottchen, type MaskottchenZustand } from '../components/Maskottchen';
+import { UebungTimer } from '../components/UebungTimer';
 import { KATEGORIE_ICONS, KATEGORIE_LABELS, ORT_ICONS, ORT_LABELS } from '../lib/constants';
 import { sendeFreundeschallengePush, sendeGamificationPush } from '../lib/push';
+import { parseUebungTimerSekunden } from '../lib/uebungTimer';
 import type { Selbsteinschaetzung, Uebung } from '../types/database';
 
 const FREUDIG_SPRUECHE = [
@@ -72,7 +73,7 @@ interface Feedback {
 export function JuniorUebungDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile, refreshProfile } = useAuth();
+  const { profile, team, refreshProfile } = useAuth();
   const { showToast } = useToast();
 
   const [uebung, setUebung] = useState<Uebung | null>(null);
@@ -80,8 +81,6 @@ export function JuniorUebungDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [schritt, setSchritt] = useState<'wahl' | 'gefuehl'>('wahl');
-  const [sterne, setSterne] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [feier, setFeier] = useState<string | null>(null);
@@ -214,8 +213,6 @@ export function JuniorUebungDetail() {
 
       if (feierMeldungen.length > 0) setFeier(feierMeldungen.join(' '));
 
-      setSterne(null);
-      setSchritt('wahl');
       await Promise.all([refreshProfile(), load()]);
 
       // Kurze Verzögerung, damit das Maskottchen-Feedback noch sichtbar ist,
@@ -229,17 +226,11 @@ export function JuniorUebungDetail() {
   }
 
   function handleGeschafftKlick() {
-    setError(null);
-    setSchritt('gefuehl');
+    void submitEinschaetzung(true, null);
   }
 
   function handleNichtGeschafftKlick() {
     void submitEinschaetzung(false, null);
-  }
-
-  function handleSterneWahl(wert: number) {
-    setSterne(wert);
-    void submitEinschaetzung(true, wert);
   }
 
   const heute = new Date().toISOString().slice(0, 10);
@@ -283,6 +274,8 @@ export function JuniorUebungDetail() {
     );
   }
 
+  const timerSekunden = parseUebungTimerSekunden(uebung.beschreibung, team?.altersgruppe);
+
   return (
     <DashboardLayout>
       <Link to="/junior">← Zurück</Link>
@@ -305,6 +298,9 @@ export function JuniorUebungDetail() {
           />
         )}
         <p>{uebung.beschreibung}</p>
+        {timerSekunden !== null && (
+          <UebungTimer sekunden={timerSekunden} altersgruppeLabel={team?.altersgruppe ?? ''} />
+        )}
       </div>
 
       {feier && (
@@ -344,45 +340,31 @@ export function JuniorUebungDetail() {
             Du hast diese Übung heute schon 3x eingeschätzt. Morgen geht’s weiter! 💪
           </p>
         ) : (
-          <>
-            {schritt === 'wahl' && (
-              <div className="field">
-                <label>Hast du es geschafft?</label>
-                <div className="alert-error" style={{ marginBottom: 10 }}>
-                  ⚖️ Fairplay ist Ehrensache: Ich klicke nur "Geschafft", wenn ich die Übung auch
-                  wirklich absolviert habe.
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button
-                    className="btn-primary"
-                    style={{ flex: 1, width: 'auto' }}
-                    onClick={handleGeschafftKlick}
-                    disabled={submitting}
-                  >
-                    Geschafft
-                  </button>
-                  <button
-                    className="btn-secondary"
-                    style={{ flex: 1 }}
-                    onClick={handleNichtGeschafftKlick}
-                    disabled={submitting}
-                  >
-                    {submitting ? 'Wird gespeichert …' : 'Nicht geschafft'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {schritt === 'gefuehl' && (
-              <div className="field">
-                <label>Wie hat es sich angefühlt?</label>
-                <SterneAuswahl value={sterne} onChange={handleSterneWahl} readOnly={submitting} />
-                {submitting && (
-                  <small style={{ color: 'var(--color-text-muted)' }}>Wird gespeichert …</small>
-                )}
-              </div>
-            )}
-          </>
+          <div className="field">
+            <label>Hast du es geschafft?</label>
+            <div className="alert-error" style={{ marginBottom: 10 }}>
+              ⚖️ Fairplay ist Ehrensache: Ich klicke nur "Geschafft", wenn ich die Übung auch
+              wirklich absolviert habe.
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                className="btn-primary"
+                style={{ flex: 1, width: 'auto' }}
+                onClick={handleGeschafftKlick}
+                disabled={submitting}
+              >
+                {submitting ? 'Wird gespeichert …' : 'Geschafft'}
+              </button>
+              <button
+                className="btn-secondary"
+                style={{ flex: 1 }}
+                onClick={handleNichtGeschafftKlick}
+                disabled={submitting}
+              >
+                {submitting ? 'Wird gespeichert …' : 'Nicht geschafft'}
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -393,7 +375,6 @@ export function JuniorUebungDetail() {
           <div key={v.id} className="history-row">
             <span>{new Date(v.datum).toLocaleDateString('de-CH')}</span>
             <span className="tag">{v.geschafft ? 'Geschafft' : 'Nicht geschafft'}</span>
-            <SterneAuswahl value={v.gefuehl_sterne} readOnly />
             <span style={{ color: 'var(--color-text-muted)' }}>+{v.punkte_vergeben} Pkt.</span>
           </div>
         ))}
