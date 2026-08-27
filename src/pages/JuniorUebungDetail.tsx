@@ -6,69 +6,20 @@ import { useToast } from '../contexts/ToastContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { HerzenAuswahl } from '../components/HerzenAuswahl';
 import { KategorieIcon, OrtIcon } from '../components/icons';
-import { Maskottchen, type MaskottchenZustand } from '../components/Maskottchen';
+import { Maskottchen } from '../components/Maskottchen';
 import { UebungTimer } from '../components/UebungTimer';
 import { KATEGORIE_LABELS, ORT_LABELS } from '../lib/constants';
 import { sendeFreundeschallengePush, sendeGamificationPush } from '../lib/push';
 import { parseUebungTimerSekunden } from '../lib/uebungTimer';
 import type { Selbsteinschaetzung, Uebung } from '../types/database';
 
-const FREUDIG_SPRUECHE = [
-  'Super gemacht!',
-  'Stark! Weiter so!',
-  'Das war top!',
-  'Klasse Leistung!',
-  'Wahnsinn, gut gemacht!',
-  'Du rockst das!',
-  'Absolute Bestleistung!',
-  'Weiter so, Champion!',
-  'Das sass!',
-  'Mega stark!',
-  'Bravo!',
-  'Du bist on fire!',
-  'Top Leistung, Respekt!',
-  'Einfach spitze!',
-];
-const AUFMUNTERN_SPRUECHE = [
-  'Nicht schlimm, nächstes Mal klappt’s!',
-  'Dranbleiben, du schaffst das!',
-  'Übung macht den Meister!',
-  'Kopf hoch, das nächste Mal klappt’s!',
-  'Nicht aufgeben, du wirst immer besser!',
-  'Jeder Versuch zählt!',
-  'Beim nächsten Mal klappt’s bestimmt!',
-  'Das war ein guter Versuch!',
-  'Weiter üben, du bist auf dem richtigen Weg!',
-  'Nur Mut, du schaffst das!',
-];
-
-// Nach jeder Selbsteinschätzung (egal ob geschafft oder nicht) zusätzlich zum
-// Maskottchen-Spruch ein kleiner Extra-Lacher, rein zur Auflockerung – ohne
-// Einfluss auf Punkte/Bewertung.
-const WITZE = [
-  'Warum können Skelette so schlecht lügen? Weil man ihnen durch und durch sehen kann!',
-  'Zwei Pucks unterhalten sich: „Wie geht’s?“ – „Nur so am Rande!“',
-  'Warum haben Fische keinen guten Torabschluss? Sie haben Angst vor dem Netz!',
-  'Wie nennt man einen Torwart, der nie etwas durchlässt? Eine Wand mit Handschuhen!',
-  'Warum nahm der Hockeyschläger einen Regenschirm mit? Es sollte Pucks regnen!',
-  'Treffen sich zwei Jäger im Wald. Beide tot.',
-  'Warum ist das Mathebuch traurig? Es hat zu viele Probleme.',
-  'Was macht ein Pinguin im Sommer? Er schwitzt im Frack!',
-  'Warum können Bienen so gut zählen? Weil sie in Waben leben.',
-  'Wie nennt man einen Boomerang, der nicht zurückkommt? Einen Stock.',
-  'Warum hat der Kalender Angst? Seine Tage sind gezählt.',
-  'Wieso schwimmen Haie nur im Salzwasser? Pfeffer würde sie zum Niesen bringen.',
-  'Was sagt ein Stock zum anderen? Lass uns zusammenhalten!',
-  'Warum ist der Boden nie müde? Weil ihn alle treten, aber er steht immer wieder auf.',
-];
-
-function zufaelligerSpruch(pool: string[]): string {
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
-interface Feedback {
-  zustand: MaskottchenZustand;
-  text: string;
+// Zwischenscreen nach einer Selbsteinschätzung: ersetzt die Wie-cool-/
+// Selbsteinschätzung-Karten kurz durch eine einzige Ergebnis-Meldung, bevor
+// automatisch zur Übersicht gewechselt wird.
+interface Ergebnis {
+  geschafft: boolean;
+  punkte: number;
+  feierMeldungen: string[];
 }
 
 export function JuniorUebungDetail() {
@@ -83,9 +34,7 @@ export function JuniorUebungDetail() {
   const [error, setError] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [feier, setFeier] = useState<string | null>(null);
-  const [witz, setWitz] = useState<string | null>(null);
+  const [ergebnis, setErgebnis] = useState<Ergebnis | null>(null);
 
   const [meineBewertung, setMeineBewertung] = useState<number | null>(null);
   const [bewertungSpeichern, setBewertungSpeichern] = useState(false);
@@ -130,9 +79,7 @@ export function JuniorUebungDetail() {
   async function submitEinschaetzung(geschafftWert: boolean, sterneWert: number | null) {
     if (!id) return;
     setError(null);
-    setFeedback(null);
-    setFeier(null);
-    setWitz(null);
+    setErgebnis(null);
     setSubmitting(true);
     try {
       const { data, error } = await supabase.rpc('submit_selbsteinschaetzung', {
@@ -143,13 +90,6 @@ export function JuniorUebungDetail() {
       if (error) throw error;
 
       const punkte = data.einschaetzung.punkte_vergeben;
-      setFeedback(
-        geschafftWert
-          ? { zustand: 'freudig', text: `${zufaelligerSpruch(FREUDIG_SPRUECHE)} +${punkte} Punkte` }
-          : { zustand: 'aufmunternd', text: zufaelligerSpruch(AUFMUNTERN_SPRUECHE) }
-      );
-      setWitz(zufaelligerSpruch(WITZE));
-
       const feierMeldungen: string[] = [];
       if (data.level_aufstieg) {
         feierMeldungen.push(`Level-Aufstieg! Du bist jetzt Level ${data.neues_level}!`);
@@ -212,12 +152,12 @@ export function JuniorUebungDetail() {
         }
       }
 
-      if (feierMeldungen.length > 0) setFeier(feierMeldungen.join(' '));
+      setErgebnis({ geschafft: geschafftWert, punkte, feierMeldungen });
 
       await Promise.all([refreshProfile(), load()]);
 
-      // Kurze Verzögerung, damit das Maskottchen-Feedback noch sichtbar ist,
-      // bevor die App zur Übersicht wechselt.
+      // Kurze Verzögerung, damit der Zwischenscreen noch sichtbar ist, bevor
+      // die App zur Übersicht wechselt.
       setTimeout(() => navigate('/junior'), 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Konnte nicht gespeichert werden.');
@@ -326,78 +266,83 @@ export function JuniorUebungDetail() {
         )}
       </div>
 
-      {feier && (
+      {ergebnis ? (
         <div className="card maskottchen-celebration">
-          <Maskottchen zustand="freudig" size={160} />
-          <h2 style={{ margin: 0 }}>{feier}</h2>
+          <Maskottchen zustand={ergebnis.geschafft ? 'freudig' : 'aufmunternd'} size={160} />
+          <h2 style={{ margin: 0 }}>
+            {ergebnis.geschafft
+              ? `Super, du hast ${ergebnis.punkte} Punkte dazu gesammelt`
+              : 'Schade, probiere es weiter, beim nächsten Versuch wird es klappen'}
+          </h2>
+          {ergebnis.feierMeldungen.map((meldung, i) => (
+            <p key={i} style={{ margin: '8px 0 0' }}>
+              {meldung}
+            </p>
+          ))}
         </div>
+      ) : (
+        <>
+          <div className="card">
+            <h2>Wie cool findest du diese Übung?</h2>
+            {bewertungError && <div className="alert-error">{bewertungError}</div>}
+            <div className="field">
+              <HerzenAuswahl
+                value={meineBewertung}
+                onChange={(wert) => void handleBewertung(wert)}
+                readOnly={bewertungSpeichern}
+              />
+              {bewertungSpeichern && (
+                <small style={{ color: 'var(--color-text-muted)' }}>Wird gespeichert …</small>
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <h2>Selbsteinschätzung</h2>
+            {error && <div className="alert-error">{error}</div>}
+
+            {limitErreicht ? (
+              <p>Du hast diese Übung heute schon 3x eingeschätzt. Morgen geht’s weiter!</p>
+            ) : (
+              <div className="field">
+                <label>{timerSekunden !== null ? 'Nach dem Timer' : 'Hast du es geschafft?'}</label>
+                <div className="fairplay-note">
+                  Fairplay ist Ehrensache: tippe nur «Geschafft», wenn du die Übung auch wirklich
+                  gemacht hast.
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <button
+                    className="btn-primary"
+                    onClick={handleGeschafftKlick}
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Wird gespeichert …' : 'Geschafft'}
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={handleNichtGeschafftKlick}
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Wird gespeichert …' : 'Noch nicht'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="card">
+            <h2>Mein Verlauf zu dieser Übung</h2>
+            {verlauf.length === 0 && <p>Noch keine Einschätzung für diese Übung.</p>}
+            {verlauf.map((v) => (
+              <div key={v.id} className="history-row">
+                <span>{new Date(v.datum).toLocaleDateString('de-CH')}</span>
+                <span className="tag">{v.geschafft ? 'Geschafft' : 'Nicht geschafft'}</span>
+                <span style={{ color: 'var(--color-text-muted)' }}>+{v.punkte_vergeben} Pkt.</span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
-
-      <div className="card">
-        <h2>Wie cool findest du diese Übung?</h2>
-        {bewertungError && <div className="alert-error">{bewertungError}</div>}
-        <div className="field">
-          <HerzenAuswahl
-            value={meineBewertung}
-            onChange={(wert) => void handleBewertung(wert)}
-            readOnly={bewertungSpeichern}
-          />
-          {bewertungSpeichern && (
-            <small style={{ color: 'var(--color-text-muted)' }}>Wird gespeichert …</small>
-          )}
-        </div>
-      </div>
-
-      <div className="card">
-        <h2>Selbsteinschätzung</h2>
-        {error && <div className="alert-error">{error}</div>}
-        {feedback && <Maskottchen zustand={feedback.zustand} text={feedback.text} />}
-        {witz && (
-          <p style={{ marginTop: 10, fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
-            {witz}
-          </p>
-        )}
-
-        {limitErreicht ? (
-          <p>Du hast diese Übung heute schon 3x eingeschätzt. Morgen geht’s weiter!</p>
-        ) : (
-          <div className="field">
-            <label>{timerSekunden !== null ? 'Nach dem Timer' : 'Hast du es geschafft?'}</label>
-            <div className="fairplay-note">
-              Fairplay ist Ehrensache: tippe nur «Geschafft», wenn du die Übung auch wirklich
-              gemacht hast.
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <button
-                className="btn-primary"
-                onClick={handleGeschafftKlick}
-                disabled={submitting}
-              >
-                {submitting ? 'Wird gespeichert …' : 'Geschafft'}
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={handleNichtGeschafftKlick}
-                disabled={submitting}
-              >
-                {submitting ? 'Wird gespeichert …' : 'Noch nicht'}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="card">
-        <h2>Mein Verlauf zu dieser Übung</h2>
-        {verlauf.length === 0 && <p>Noch keine Einschätzung für diese Übung.</p>}
-        {verlauf.map((v) => (
-          <div key={v.id} className="history-row">
-            <span>{new Date(v.datum).toLocaleDateString('de-CH')}</span>
-            <span className="tag">{v.geschafft ? 'Geschafft' : 'Nicht geschafft'}</span>
-            <span style={{ color: 'var(--color-text-muted)' }}>+{v.punkte_vergeben} Pkt.</span>
-          </div>
-        ))}
-      </div>
     </DashboardLayout>
   );
 }

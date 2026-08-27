@@ -24,7 +24,14 @@ export function RegisterPage() {
 
   useEffect(() => {
     async function loadTeams() {
-      const { data } = await supabase.from('teams').select('*').order('name');
+      // Sortiert nach Altersgruppe (U9 zuerst — die Reihenfolge entspricht der
+      // Definition von altersgruppe_typ in Migration 0001), innerhalb der
+      // gleichen Altersgruppe zusätzlich nach Name.
+      const { data } = await supabase
+        .from('teams')
+        .select('*')
+        .order('altersgruppe')
+        .order('name');
       setTeams(data ?? []);
       setLoadingOptions(false);
     }
@@ -159,7 +166,7 @@ export function RegisterPage() {
                   </option>
                   {teams.map((team) => (
                     <option key={team.id} value={team.id}>
-                      {team.name} ({team.altersgruppe})
+                      {team.name}
                     </option>
                   ))}
                 </select>

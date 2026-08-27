@@ -19,7 +19,7 @@ export function Maskottchen({ zustand = 'neutral', text, size = 56 }: Maskottche
       <BulliGesicht zustand={zustand} size={size} />
       {text && (
         <span className="speech-bubble-text">
-          Bulli sagt: <strong>{text}</strong>
+          <strong>{text}</strong>
         </span>
       )}
     </div>
