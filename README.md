@@ -705,11 +705,26 @@ der Reset admin-gestützt und komplett ohne E-Mail-Versand:
 3. **Übersicht im Admin-Bereich** (`PasswortResetAnfragenCard`, ganz oben auf `/admin`, direkt
    sichtbar beim Öffnen): zeigt alle offenen Anfragen inkl. Name/E-Mail des betroffenen Kontos.
    Die Karte blendet sich komplett aus, sobald keine offene Anfrage mehr vorliegt.
-4. **Passwort setzen:** Der Admin vergibt über ein Formular ein neues Passwort, das er dem Nutzer
-   auf einem anderen Weg mitteilt (persönlich, im Training, …). Das läuft über
+4. **Passwort setzen:** Der Admin vergibt über ein Formular ein neues Passwort und teilt es dem
+   Nutzer selbst mit (z. B. per eigener E-Mail) — die App verschickt dabei keine E-Mail
+   automatisch. Das läuft über
    `admin-user-management` (Aktion `reset-password`, `auth.admin.updateUserById()`) und markiert
    die zugehörige Anfrage dabei gleich als erledigt. Alternativ lässt sich eine Anfrage auch ohne
    Passwort-Reset direkt als "erledigt" markieren (z. B. wenn ausserhalb der App geklärt wurde).
+
+## CORS bei Edge Functions
+
+Alle drei Edge Functions (`admin-user-management`, `passwort-reset-anfragen`,
+`send-push-notification`) beantworten Preflight-Requests (`OPTIONS`) jetzt
+explizit und setzen `Access-Control-Allow-*`-Header auf jeder Response
+(gemeinsamer Helper `supabase/functions/_shared/cors.ts`, wird als geteilter
+Code mitdeployt, nicht als eigene Function). Ohne das lehnt der Browser jeden
+Aufruf vom Netlify-Frontend aus schon beim Preflight ab ("has been blocked by
+CORS policy"), sobald der Request einen `Content-Type: application/json`-
+oder `Authorization`-Header trägt (also praktisch immer) — betraf ursprünglich
+nur beim Testen von `/passwort-vergessen` auffällig, hätte aber ebenso
+Push-Benachrichtigungen und die Nutzerverwaltung vom deployten Frontend aus
+lahmgelegt.
 
 ## Bekannte Grenzen dieser Phase
 

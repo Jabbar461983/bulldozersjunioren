@@ -15,6 +15,7 @@
 // Edge-Runtime bereits vorhanden (kein zusätzliches Secret nötig).
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { corsHeaders } from '../_shared/cors.ts';
 
 type Rolle = 'junior' | 'trainer' | 'admin';
 
@@ -48,13 +49,17 @@ type RequestBody = CreateBody | DeleteBody | ResetPasswordBody;
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
   }
 
   const authHeader = req.headers.get('Authorization');

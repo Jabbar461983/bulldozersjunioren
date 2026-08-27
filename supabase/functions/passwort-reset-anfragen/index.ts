@@ -22,21 +22,27 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const GENERISCHE_ANTWORT = {
-  message: 'Falls ein Konto mit dieser E-Mail existiert, wurde ein Admin benachrichtigt.',
+  message:
+    'Falls ein Konto mit dieser E-Mail existiert, wurde ein Admin benachrichtigt und schickt dir dein neues Passwort per E-Mail zu.',
 };
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
   }
 
   let payload: { email?: string };

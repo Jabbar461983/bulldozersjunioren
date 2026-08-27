@@ -17,6 +17,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3';
+import { corsHeaders } from '../_shared/cors.ts';
 
 interface RequestBody {
   title: string;
@@ -25,13 +26,17 @@ interface RequestBody {
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
   }
 
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
-    return new Response('Unauthorized', { status: 401 });
+    return new Response('Unauthorized', { status: 401, headers: corsHeaders });
   }
 
   const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
@@ -41,6 +46,7 @@ Deno.serve(async (req: Request) => {
   if (!vapidPublicKey || !vapidPrivateKey || !vapidSubject) {
     return new Response('Push ist serverseitig nicht konfiguriert (VAPID-Secrets fehlen).', {
       status: 500,
+      headers: corsHeaders,
     });
   }
 
@@ -50,10 +56,10 @@ Deno.serve(async (req: Request) => {
   try {
     payload = await req.json();
   } catch {
-    return new Response('Ungültiger Request-Body.', { status: 400 });
+    return new Response('Ungültiger Request-Body.', { status: 400, headers: corsHeaders });
   }
   if (!payload.title || !payload.body) {
-    return new Response('title und body sind erforderlich.', { status: 400 });
+    return new Response('title und body sind erforderlich.', { status: 400, headers: corsHeaders });
   }
 
   // Client mit dem JWT des Aufrufers: RLS beschränkt die Abfrage automatisch
@@ -72,7 +78,7 @@ Deno.serve(async (req: Request) => {
       data: { user: caller },
     } = await callerClient.auth.getUser();
     if (!caller) {
-      return new Response('Unauthorized', { status: 401 });
+      return new Response('Unauthorized', { status: 401, headers: corsHeaders });
     }
 
     // Service-Role-Client, um RLS gezielt für den Freundeschallenge-Fall zu
@@ -95,6 +101,7 @@ Deno.serve(async (req: Request) => {
     if (!beziehung) {
       return new Response('Keine Freundeschallenge zwischen Aufrufer und Ziel gefunden.', {
         status: 403,
+        headers: corsHeaders,
       });
     }
 
@@ -108,7 +115,10 @@ Deno.serve(async (req: Request) => {
   const { data: subscriptions, error } = await subscriptionsQuery;
 
   if (error) {
-    return new Response(`Konnte Abonnements nicht laden: ${error.message}`, { status: 500 });
+    return new Response(`Konnte Abonnements nicht laden: ${error.message}`, {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 
   const notificationPayload = JSON.stringify({ title: payload.title, body: payload.body });
@@ -137,6 +147,6 @@ Deno.serve(async (req: Request) => {
 
   const gesendet = results.filter((r) => r.status === 'fulfilled').length;
   return new Response(JSON.stringify({ gesendet, gesamt: results.length }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 });

@@ -27,7 +27,8 @@ export function PasswortVergessenPage() {
         throw new Error(await leseEdgeFunctionFehler(error, 'Anfrage konnte nicht gesendet werden.'));
       }
       setInfo(
-        data?.message ?? 'Falls ein Konto mit dieser E-Mail existiert, wurde ein Admin benachrichtigt.'
+        data?.message ??
+          'Falls ein Konto mit dieser E-Mail existiert, wurde ein Admin benachrichtigt und schickt dir dein neues Passwort per E-Mail zu.'
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Anfrage konnte nicht gesendet werden.');
@@ -38,42 +39,43 @@ export function PasswortVergessenPage() {
 
   return (
     <div className="app-shell">
-      <div className="auth-card">
-        <div className="brand">
-          <img src="/logo-bulldozers_farbig.png" alt="" className="brand-logo" />
-          <div>
-            <h1 style={{ fontSize: '1.25rem' }}>Passwort vergessen</h1>
-          </div>
+      <div className="auth-card auth-card--split">
+        <div className="auth-hero">
+          <img src="/logo-bulldozers_farbig.png" alt="" className="auth-hero-logo" />
+          <h1 className="auth-hero-title" style={{ fontSize: '1.5rem' }}>
+            Passwort vergessen
+          </h1>
+          <p className="auth-hero-claim">
+            Ein Admin wird benachrichtigt und schickt dir dein neues Passwort per E-Mail zu.
+          </p>
         </div>
 
-        {error && <div className="alert-error">{error}</div>}
-        {info && <div className="alert-info">{info}</div>}
+        <div className="auth-form-zone">
+          {error && <div className="alert-error">{error}</div>}
+          {info && <div className="alert-info">{info}</div>}
 
-        {!info && (
-          <form onSubmit={handleSubmit}>
-            <p style={{ color: 'var(--color-text-muted)', marginTop: 0 }}>
-              Gib deine E-Mail-Adresse ein. Ein Admin wird benachrichtigt und setzt dir ein neues
-              Passwort, das er dir auf anderem Weg mitteilt (z. B. persönlich im Training).
-            </p>
-            <div className="field">
-              <label htmlFor="email">E-Mail</label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <button className="btn-primary" type="submit" disabled={submitting}>
-              {submitting ? 'Wird gesendet …' : 'Admin benachrichtigen'}
-            </button>
-          </form>
-        )}
+          {!info && (
+            <form onSubmit={handleSubmit}>
+              <div className="field">
+                <label htmlFor="email">E-Mail</label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <button className="btn-primary" type="submit" disabled={submitting}>
+                {submitting ? 'Wird gesendet …' : 'Admin benachrichtigen'}
+              </button>
+            </form>
+          )}
 
-        <div className="form-footer">
-          <Link to="/login">Zurück zur Anmeldung</Link>
+          <div className="form-footer">
+            <Link to="/login">Zurück zur Anmeldung</Link>
+          </div>
         </div>
       </div>
     </div>
