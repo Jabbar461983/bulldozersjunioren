@@ -423,19 +423,48 @@ Standard-Theme. Das Logo erscheint prominent im App-Header (`DashboardLayout`); 
 Login-/Register-Screen (vor der Anmeldung, wenn das Team noch nicht bekannt ist) bleibt bewusst das
 generische App-Branding.
 
-### Comic-Stil
+### Bulldozers-Design-System (Redesign, Phase 16)
 
-Durchgängig überarbeitet für eine junge, mobile Zielgruppe (`src/index.css`/`src/App.css`):
+Die ursprüngliche "Comic"-Optik (Baloo 2/Nunito, grosszügige Radien, versetzte
+"Sticker"-Schatten) wurde durch das vereinsoffizielle Design-System aus dem
+Design-Handoff (`design_handoff_junioren_pwa`) ersetzt — Funktionsumfang und
+Seitenaufbau blieben dabei unverändert, nur Optik/Typografie/Icons wurden
+nachgebaut:
 
-- Rundliche, freundliche Schriftarten (**Baloo 2** für Überschriften/Buttons, **Nunito** für
-  Fliesstext, via Google Fonts).
-- Grosszügiger Radius (Karten, Buttons, Inputs) statt scharfer Ecken, "Sticker"-Schatten
-  (versetzter Farbrand) auf Karten/Buttons, kleine Press-Animation auf Buttons.
-- Grosszügige Touch-Flächen (Inputs/Buttons/Listenzeilen ≥ 48 px Höhe) und reduzierte Textmengen,
-  passend für eine Zielgruppe ab ca. 6 Jahren.
-- Die 6 Trainingskategorien haben je ein Emoji-Icon (`KATEGORIE_ICONS` in `src/lib/constants.ts`,
-  dieselben wie bei den zugehörigen Badges), das überall dort erscheint, wo eine Kategorie
-  angezeigt wird (Übungsliste, Detailansicht, Verlauf, Übungsverwaltung).
+- **Feste Markenpalette** statt Team-weitem Farbverlauf: die Grün-/Gold-/
+  Ink-Skala aus dem Handoff (`--bd-green-*`/`--bd-gold-*`/`--bd-ink-*`,
+  `src/index.css`) ist überall fest verdrahtet. Die Team-Branding-Funktion aus
+  obigem Abschnitt bleibt bestehen, wirkt aber gezielt nur noch auf die zwei
+  Tokens `--color-primary`/`--color-accent` (Primärbutton, Links, Fortschritt,
+  Technik-Kachel) — die restliche feste Markenpalette (Kategorie-Farbcode,
+  schwarzer Header, Neutralfarben) ist bewusst nicht team-individualisierbar,
+  da sie Teil des Kategorie-/Marken-Systems ist statt der Vereinsfarben.
+- **Arial only** (`--sans`), kein Webfont mehr — die vorherigen Google-Fonts-
+  Links (Baloo 2/Nunito) wurden aus `index.html` entfernt. Überschriften
+  durchgängig fett/uppercase mit Letter-Spacing statt der bisherigen runden
+  Comic-Schrift.
+- **Nahezu eckiges Radius-System** (4 px Karten/Controls, 2 px Chips, 8 px nur
+  für grosse Medien, 999px nur für Pills/Tags/den runden Timer-Button) ersetzt
+  die bisherigen grossen Radien; weiche `--shadow-sm/md/lg`-Schatten statt der
+  versetzten "Sticker"-Schatten.
+- **Globaler schwarzer Header** (`DashboardLayout.tsx`) mit Wappen-Wasserzeichen,
+  Eyebrow, Begrüssung und — nur für Junioren — Punkte-/Level-/Fortschrittszeile
+  (vorher eine separate Karte auf `/junior`).
+- **Lucide-Icons statt Emoji** (`src/components/icons.tsx`): Kategorie- und
+  Ort-Icons, Trophäe, Herzen (Bewertung), Flamme (Streak) etc. sind jetzt
+  Lucide-Komponenten (2 px Strich) statt Emoji-Zeichen — Vereinsregel "nie
+  Emoji". `KATEGORIE_ICONS`/`ORT_ICONS` (Emoji-Strings) sind entfallen, an
+  ihrer Stelle stehen `<KategorieIcon>`/`<OrtIcon>` sowie die
+  Kategorie-Farbtabelle `KATEGORIE_FARBEN` für die sechs farbigen Kacheln auf
+  `/junior`.
+- **Maskottchen "Bulli"**: die gezeichnete Ball-Illustration (Vorgänger-Redesign)
+  ist einer Icon-Kachel gewichen (`speech-bubble-icon`, Sprechblasen-/
+  Haken-Symbol), da laut Handoff das echte Maskottchen-Bild noch fehlt
+  ("Bulli-Maskottchen: fehlt, aktuell Sprechblasen-Icon"). Komponenten-API
+  (`zustand`/`text`/`size`) ist unverändert, nur die interne Darstellung hat
+  sich geändert.
+- Grosszügige Touch-Flächen (Inputs/Buttons/Listenzeilen ≥ 44 px Höhe) bleiben
+  erhalten, passend für die Zielgruppe U12–U15.
 - Mobile-first: Alle Ansichten sind von Phase 1 an einspaltig für Smartphones ausgelegt; die
   Layout-Breite wächst nur massvoll auf grösseren Bildschirmen.
 

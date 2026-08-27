@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { Image } from './icons';
 import { uploadTeamLogo } from '../lib/storage';
 import type { Team } from '../types/database';
 
@@ -85,10 +86,10 @@ export function TeamBrandingForm({ team, onSaved, onCancel }: TeamBrandingFormPr
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '1.5rem',
+                  color: 'var(--color-text-muted)',
                 }}
               >
-                🏒
+                <Image size={26} strokeWidth={2} aria-hidden="true" />
               </div>
             )}
             <input

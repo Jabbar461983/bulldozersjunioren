@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
+import { Trophy } from './icons';
 import { KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import type { RanglisteEintrag, Team, TeamRanglisteEintrag, UebungKategorie } from '../types/database';
 
@@ -68,7 +69,12 @@ export function RanglisteCard() {
 
   return (
     <div className="card">
-      <h2>🏆 Rangliste</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+        <span style={{ display: 'flex', color: 'var(--bd-gold-600)' }}>
+          <Trophy size={20} strokeWidth={2} aria-hidden="true" />
+        </span>
+        <h2 style={{ margin: 0 }}>Rangliste</h2>
+      </div>
       {error && <div className="alert-error">{error}</div>}
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
@@ -120,16 +126,25 @@ export function RanglisteCard() {
                 <div
                   key={eintrag.id}
                   className="history-row"
-                  style={{ fontWeight: istEigeneZeile ? 800 : 400 }}
+                  style={
+                    istEigeneZeile
+                      ? { fontWeight: 700, background: 'var(--bd-green-100)', margin: '0 -4px', padding: '13px 8px' }
+                      : { fontWeight: 400 }
+                  }
                 >
-                  <span>
+                  <span style={istEigeneZeile ? { color: 'var(--color-primary-hover)' } : undefined}>
                     {index + 1}. {eintrag.vorname} {eintrag.nachname_initiale}.
-                    {istEigeneZeile && ' (Du)'}
+                    {istEigeneZeile && ' · DU'}
                   </span>
                   {!filterTeam && eintrag.team_name && (
                     <span className="tag">{eintrag.team_name}</span>
                   )}
-                  <span style={{ color: 'var(--color-text-muted)' }}>
+                  <span
+                    style={{
+                      color: istEigeneZeile ? 'var(--color-primary-hover)' : 'var(--color-text-muted)',
+                      fontWeight: 700,
+                    }}
+                  >
                     {eintrag.punkte_total} Pkt. · Level {eintrag.level_aktuell}
                   </span>
                 </div>
@@ -168,14 +183,23 @@ export function RanglisteCard() {
                 <div
                   key={eintrag.team_id}
                   className="history-row"
-                  style={{ fontWeight: istEigenesTeam ? 800 : 400 }}
+                  style={
+                    istEigenesTeam
+                      ? { fontWeight: 700, background: 'var(--bd-green-100)', margin: '0 -4px', padding: '13px 8px' }
+                      : { fontWeight: 400 }
+                  }
                 >
-                  <span>
+                  <span style={istEigenesTeam ? { color: 'var(--color-primary-hover)' } : undefined}>
                     {index + 1}. {eintrag.team_name}
-                    {istEigenesTeam && ' (Dein Team)'}
+                    {istEigenesTeam && ' · DEIN TEAM'}
                   </span>
                   <span className="tag">{eintrag.altersgruppe}</span>
-                  <span style={{ color: 'var(--color-text-muted)' }}>
+                  <span
+                    style={{
+                      color: istEigenesTeam ? 'var(--color-primary-hover)' : 'var(--color-text-muted)',
+                      fontWeight: 700,
+                    }}
+                  >
                     {eintrag.punkte_total} Pkt.
                   </span>
                 </div>

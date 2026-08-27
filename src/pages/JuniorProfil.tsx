@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { BadgeGrid } from '../components/BadgeGrid';
+import { Calendar, Flame } from '../components/icons';
 import { effektiverTagesStreak, effektiverWochenStreak, levelFortschritt } from '../lib/gamification';
 import { istPushUnterstuetzt, pushAktivieren, pushBerechtigungStatus } from '../lib/push';
 import type { Badge } from '../types/database';
@@ -62,7 +63,7 @@ export function JuniorProfil() {
 
   return (
     <DashboardLayout>
-      <Link to="/junior">← Zurück</Link>
+      <Link to="/junior" className="back-link">← Zurück</Link>
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Level {fortschritt.level}</h2>
@@ -78,8 +79,14 @@ export function JuniorProfil() {
       <div className="card">
         <h2>Streak</h2>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <span className="streak-badge">🔥 {tagesStreak} Tage in Folge</span>
-          <span className="streak-badge">📅 {wochenStreak} Wochen in Folge</span>
+          <span className="streak-badge">
+            <Flame size={16} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--bd-gold-600)' }} />
+            {tagesStreak} Tage in Folge
+          </span>
+          <span className="streak-badge">
+            <Calendar size={16} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--bd-gold-600)' }} />
+            {wochenStreak} Wochen in Folge
+          </span>
         </div>
       </div>
 

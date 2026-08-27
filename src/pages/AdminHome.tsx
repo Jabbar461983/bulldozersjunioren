@@ -134,17 +134,11 @@ export function AdminHome() {
                   gap: 10,
                 }}
               >
-                {team.logo_url ? (
-                  <img
-                    src={team.logo_url}
-                    alt=""
-                    style={{ width: 32, height: 32, objectFit: 'contain', borderRadius: 8 }}
-                  />
-                ) : (
-                  <span style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    🏒
-                  </span>
-                )}
+                <img
+                  src={team.logo_url || '/logo-bulldozers_farbig.png'}
+                  alt=""
+                  style={{ width: 32, height: 32, objectFit: 'contain', borderRadius: 8 }}
+                />
                 <span style={{ flex: 1 }}>{team.name}</span>
                 <span style={{ color: 'var(--color-text-muted)' }}>{team.altersgruppe}</span>
                 <button className="btn-secondary" onClick={() => setBrandingTeam(team)}>

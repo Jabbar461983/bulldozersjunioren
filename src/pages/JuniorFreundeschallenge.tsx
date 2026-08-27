@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { FREUNDESCHALLENGE_STATUS_LABELS, KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
+import { KategorieIcon, Users } from '../components/icons';
+import { FREUNDESCHALLENGE_STATUS_LABELS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import { sendeFreundeschallengePush } from '../lib/push';
 import type { FreundeschallengeKandidat, MeineFreundeschallenge, Team, UebungKategorie } from '../types/database';
 
@@ -131,10 +132,15 @@ export function JuniorFreundeschallenge() {
 
   return (
     <DashboardLayout>
-      <Link to="/junior">← Zurück</Link>
+      <Link to="/junior" className="back-link">← Zurück</Link>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <h2>🤝 Freundeschallenge</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 8 }}>
+          <span style={{ display: 'flex', color: 'var(--bd-gold-600)' }}>
+            <Users size={26} strokeWidth={2} aria-hidden="true" />
+          </span>
+          <h2 style={{ margin: 0 }}>Freundeschallenge</h2>
+        </div>
         <p>
           Spanne mit einem Kollegen oder einer Kollegin zusammen: Wählt eine Kategorie und macht 3
           Tage in Folge eine Übung daraus. Schaffen es beide, gibt es Extrapunkte – schafft es
@@ -169,7 +175,9 @@ export function JuniorFreundeschallenge() {
             >
               <div className="history-row">
                 <span>
-                  <span className="kategorie-icon">{KATEGORIE_ICONS[aktuelle.kategorie]}</span>
+                  <span className="kategorie-icon">
+                    <KategorieIcon kategorie={aktuelle.kategorie} size={18} />
+                  </span>
                   {KATEGORIE_LABELS[aktuelle.kategorie]}
                 </span>
                 <span>
@@ -295,7 +303,9 @@ export function JuniorFreundeschallenge() {
           {verlauf.map((c) => (
             <div key={c.id} className="history-row">
               <span>
-                <span className="kategorie-icon">{KATEGORIE_ICONS[c.kategorie]}</span>
+                <span className="kategorie-icon">
+                  <KategorieIcon kategorie={c.kategorie} size={18} />
+                </span>
                 {KATEGORIE_LABELS[c.kategorie]}
               </span>
               <span>

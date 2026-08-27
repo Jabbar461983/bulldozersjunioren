@@ -7,8 +7,9 @@ import { Maskottchen } from '../components/Maskottchen';
 import { PushOnboarding } from '../components/PushOnboarding';
 import { RanglisteCard } from '../components/RanglisteCard';
 import { HerzenAuswahl } from '../components/HerzenAuswahl';
-import { KATEGORIE_ICONS, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
-import { effektiverTagesStreak, levelFortschritt } from '../lib/gamification';
+import { Award, Flame, KategorieIcon, List, OrtIcon, Users } from '../components/icons';
+import { KATEGORIE_FARBEN, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
+import { effektiverTagesStreak } from '../lib/gamification';
 import type { MeineFreundeschallenge, Uebung, UebungBeliebtheit, UebungKategorie } from '../types/database';
 
 const ANZAHL_ROTATION = 5;
@@ -125,7 +126,6 @@ export function JuniorHome() {
     ? sortierteUebungen
     : sortierteUebungen.filter((u) => rotationsIds.has(u.id));
 
-  const fortschritt = levelFortschritt(profile?.punkte_total ?? 0);
   const tagesStreak = profile
     ? effektiverTagesStreak(profile.streak_counter, profile.streak_letzte_aktivitaet)
     : 0;
@@ -133,62 +133,41 @@ export function JuniorHome() {
   return (
     <DashboardLayout>
       <div className="card">
-        <Maskottchen zustand="neutral" text={`Hallo ${profile?.vorname ?? ''}! ${begruessung}`} />
+        <Maskottchen zustand="neutral" text={`${profile?.vorname ?? ''}! ${begruessung}`} />
       </div>
+
+      {tagesStreak > 0 && (
+        <span className="streak-badge" style={{ marginLeft: 16, marginBottom: 16, display: 'inline-flex' }}>
+          <Flame size={16} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--bd-gold-600)' }} />
+          {tagesStreak} Tage in Folge
+        </span>
+      )}
 
       <PushOnboarding />
 
       <div className="card">
-        <h2>Level {fortschritt.level}</h2>
-        <div className="progress-track">
-          <div className="progress-fill" style={{ width: `${fortschritt.prozent}%` }} />
-        </div>
-        <p style={{ marginTop: 8 }}>
-          {profile?.punkte_total ?? 0} Punkte · noch {fortschritt.punkteBisNaechstesLevel} bis
-          Level {fortschritt.level + 1}
-        </p>
-        <span className="streak-badge">🔥 {tagesStreak} Tage in Folge</span>
-        <div className="level-actions">
-          <Link to="/junior/profil" className="btn-level">
-            🏅 Mein Profil & Badges
-          </Link>
-          <Link to="/junior/verlauf" className="btn-level">
-            📜 Mein Verlauf
-          </Link>
-          <Link to="/junior/freundeschallenge" className="btn-level">
-            🤝 Freundeschallenge
-          </Link>
-        </div>
-      </div>
-
-      <RanglisteCard />
-
-      <div className="card">
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 16,
-          }}
-        >
-          <h2 style={{ margin: 0 }}>Übung starten</h2>
-        </div>
+        <h3 className="hd" style={{ marginBottom: 10 }}>
+          Übung starten
+        </h3>
 
         {error && <div className="alert-error">{error}</div>}
 
         <div className="kategorie-grid">
-          {KATEGORIEN.map((k) => (
-            <button
-              key={k}
-              type="button"
-              className={`btn-kategorie${filterKategorie === k ? ' btn-kategorie-active' : ''}`}
-              onClick={() => setFilterKategorie(filterKategorie === k ? '' : k)}
-            >
-              <span className="kategorie-icon">{KATEGORIE_ICONS[k]}</span>
-              {KATEGORIE_LABELS[k]}
-            </button>
-          ))}
+          {KATEGORIEN.map((k) => {
+            const farben = KATEGORIE_FARBEN[k];
+            return (
+              <button
+                key={k}
+                type="button"
+                className={`btn-kategorie${filterKategorie === k ? ' btn-kategorie-active' : ''}`}
+                style={{ background: farben.bg, color: farben.fg }}
+                onClick={() => setFilterKategorie(filterKategorie === k ? '' : k)}
+              >
+                <KategorieIcon kategorie={k} size={28} />
+                {KATEGORIE_LABELS[k]}
+              </button>
+            );
+          })}
         </div>
 
         {!filterKategorie && <p>Wähle eine Kategorie, um passende Übungen zu sehen.</p>}
@@ -196,12 +175,19 @@ export function JuniorHome() {
         {filterKategorie && !loading && uebungen.length > 0 && (
           <small
             style={{
-              display: 'block',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
               color: 'var(--color-text-muted)',
               marginBottom: 8,
             }}
           >
-            🏠 Zuhause geeignet · 🏒 Auf dem Spielfeld geeignet
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <OrtIcon ort="zuhause" size={14} /> Zuhause geeignet
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <OrtIcon ort="halle" size={14} /> Auf dem Spielfeld geeignet
+            </span>
           </small>
         )}
 
@@ -216,17 +202,19 @@ export function JuniorHome() {
             const eintrag = beliebtheit.get(u.id);
             return (
               <Link key={u.id} to={`/junior/uebungen/${u.id}`} className="touch-row">
-                <span style={{ fontWeight: 700 }}>
-                  <span className="kategorie-icon">{KATEGORIE_ICONS[u.kategorie]}</span>
+                <span style={{ fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+                  <span className="kategorie-icon">
+                    <KategorieIcon kategorie={u.kategorie} size={18} />
+                  </span>
                   {u.titel}
                   {u.orte.includes('zuhause') && (
-                    <span title="Zuhause machbar" style={{ marginLeft: 6 }}>
-                      🏠
+                    <span title="Zuhause machbar" style={{ marginLeft: 6, display: 'inline-flex' }}>
+                      <OrtIcon ort="zuhause" size={14} />
                     </span>
                   )}
                   {u.orte.includes('halle') && (
-                    <span title="Auf dem Spielfeld machbar" style={{ marginLeft: 6 }}>
-                      🏒
+                    <span title="Auf dem Spielfeld machbar" style={{ marginLeft: 6, display: 'inline-flex' }}>
+                      <OrtIcon ort="halle" size={14} />
                     </span>
                   )}
                 </span>
@@ -245,6 +233,23 @@ export function JuniorHome() {
               </Link>
             );
           })}
+      </div>
+
+      <RanglisteCard />
+
+      <div className="level-actions" style={{ margin: '0 16px 16px' }}>
+        <Link to="/junior/profil" className="btn-level">
+          <Award size={18} strokeWidth={2} aria-hidden="true" />
+          Profil &amp; Badges
+        </Link>
+        <Link to="/junior/verlauf" className="btn-level">
+          <List size={18} strokeWidth={2} aria-hidden="true" />
+          Mein Verlauf
+        </Link>
+        <Link to="/junior/freundeschallenge" className="btn-level">
+          <Users size={18} strokeWidth={2} aria-hidden="true" />
+          Freundeschallenge
+        </Link>
       </div>
     </DashboardLayout>
   );

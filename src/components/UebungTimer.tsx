@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
+import { Pause, Play } from './icons';
 
 interface UebungTimerProps {
   sekunden: number;
   altersgruppeLabel: string;
 }
 
-const GROESSE = 180;
-const RADIUS = 78;
+const GROESSE = 212;
+const RADIUS = 100;
 const UMFANG = 2 * Math.PI * RADIUS;
 
 // Reiner Zeitmesser als Hilfestellung während der Übung – blockiert die
 // Geschafft/Nicht-geschafft-Buttons nicht, da die Selbsteinschätzung davon
-// unabhängig bleibt (siehe JuniorUebungDetail).
+// unabhängig bleibt (siehe JuniorUebungDetail). Optik gemäss
+// design_handoff_junioren_pwa, Screen "2b": Ring + runder Start/Pause-Button
+// auf grünem Grund.
 export function UebungTimer({ sekunden, altersgruppeLabel }: UebungTimerProps) {
   const dauer = sekunden > 0 ? sekunden : 1;
   const [restSekunden, setRestSekunden] = useState(dauer);
@@ -57,37 +60,30 @@ export function UebungTimer({ sekunden, altersgruppeLabel }: UebungTimerProps) {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 12,
-        margin: '20px 0 8px',
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <svg
         width={GROESSE}
         height={GROESSE}
         viewBox={`0 0 ${GROESSE} ${GROESSE}`}
         role="img"
         aria-label={fertig ? 'Timer fertig' : `Timer, ${restSekunden} Sekunden verbleibend`}
+        style={{ marginTop: 24 }}
       >
         <circle
           cx={GROESSE / 2}
           cy={GROESSE / 2}
           r={RADIUS}
           fill="none"
-          stroke="var(--color-border)"
-          strokeWidth="14"
+          stroke="var(--bd-green-800)"
+          strokeWidth="6"
         />
         <circle
           cx={GROESSE / 2}
           cy={GROESSE / 2}
           r={RADIUS}
           fill="none"
-          stroke={fertig ? 'var(--color-accent)' : 'var(--color-primary)'}
-          strokeWidth="14"
+          stroke="var(--bd-gold-500)"
+          strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={UMFANG}
           strokeDashoffset={dashoffset}
@@ -99,41 +95,40 @@ export function UebungTimer({ sekunden, altersgruppeLabel }: UebungTimerProps) {
           y="47%"
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize="42"
-          fontWeight="800"
-          fill="var(--color-text)"
+          fontSize="58"
+          fontWeight="700"
+          fill="#fff"
         >
           {restSekunden}
         </text>
         <text
           x="50%"
-          y="66%"
+          y="65%"
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize="12"
+          fontSize="11"
           fontWeight="700"
-          letterSpacing="0.06em"
-          fill="var(--color-text-muted)"
+          letterSpacing="0.12em"
+          fill="var(--bd-green-200)"
         >
-          {fertig ? 'FERTIG 🎉' : `SEKUNDEN${altersgruppeLabel ? ` · ${altersgruppeLabel}` : ''}`}
+          {fertig ? 'FERTIG' : `SEKUNDEN${altersgruppeLabel ? ` · ${altersgruppeLabel}` : ''}`}
         </text>
       </svg>
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={handleStartPause}
-          style={{ width: 'auto', padding: '10px 24px' }}
-        >
-          {fertig ? 'Nochmal starten' : laeuft ? 'Pause' : nochNichtGestartet ? 'Timer starten' : 'Weiter'}
+
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginTop: 24 }}>
+        <button type="button" className="timer-start-btn" onClick={handleStartPause}>
+          {laeuft ? (
+            <Pause size={34} strokeWidth={0} fill="currentColor" aria-hidden="true" />
+          ) : (
+            <Play size={34} strokeWidth={0} fill="currentColor" aria-hidden="true" />
+          )}
+          <span>{laeuft ? 'PAUSE' : fertig ? 'NOCHMAL' : 'START'}</span>
         </button>
+        <span style={{ fontSize: '0.75rem', color: 'var(--bd-green-100)' }}>
+          {nochNichtGestartet ? 'Timer starten' : laeuft ? 'Timer läuft' : fertig ? 'Fertig!' : 'Pausiert'}
+        </span>
         {!fertig && !nochNichtGestartet && (
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={handleReset}
-            style={{ width: 'auto', padding: '10px 16px' }}
-          >
+          <button type="button" className="timer-reset-link" onClick={handleReset}>
             Zurücksetzen
           </button>
         )}

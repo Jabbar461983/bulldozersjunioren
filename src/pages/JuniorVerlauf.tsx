@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { KATEGORIE_ICONS, KATEGORIE_LABELS } from '../lib/constants';
+import { KategorieIcon } from '../components/icons';
+import { KATEGORIE_LABELS } from '../lib/constants';
 import type { Selbsteinschaetzung, Uebung } from '../types/database';
 
 export function JuniorVerlauf() {
@@ -53,7 +54,7 @@ export function JuniorVerlauf() {
 
   return (
     <DashboardLayout>
-      <Link to="/junior">← Zurück</Link>
+      <Link to="/junior" className="back-link">← Zurück</Link>
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Mein Verlauf</h2>
@@ -68,7 +69,11 @@ export function JuniorVerlauf() {
               <div key={v.id} className="history-row">
                 <div>
                   <div style={{ fontWeight: 700 }}>
-                    {uebung && <span className="kategorie-icon">{KATEGORIE_ICONS[uebung.kategorie]}</span>}
+                    {uebung && (
+                      <span className="kategorie-icon">
+                        <KategorieIcon kategorie={uebung.kategorie} size={18} />
+                      </span>
+                    )}
                     {uebung?.titel ?? 'Übung gelöscht'}
                   </div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>

@@ -22,7 +22,7 @@ export default defineConfig({
           'Übungen für die Bulldozers Junioren zum Zuhause-Trainieren und Vergleichen.',
         // Vereinsfarben Streethockeyclub Bulldozers (Grün/Gold). Pro Team kann dies
         // zur Laufzeit überschrieben werden (siehe src/lib/theme.ts).
-        theme_color: '#0e6e45',
+        theme_color: '#008066',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',

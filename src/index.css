@@ -1,37 +1,65 @@
 :root {
-  --color-bg: #f3f5f8;
-  --color-surface: #ffffff;
-  --color-text: #14171f;
-  --color-text-muted: #5b6172;
-  --color-border: #dfe3ea;
-  /* Werden zur Laufzeit vom eingeloggten Team ueberschrieben (Phase 6, siehe
-     src/lib/theme.ts) — Werte hier sind der Standard ohne Team (z. B. Admin)
-     und entsprechen den Vereinsfarben des Streethockeyclub Bulldozers. */
-  --color-primary: #0e6e45;
-  --color-accent: #b08d2a;
-  --color-danger: #dc2626;
-  --color-danger-bg: #fee2e2;
-  /* Verspielt-rundes "Sticker"-Design (Phase 6): grosszuegiger Radius statt
-     scharfer Ecken. */
-  --radius: 22px;
-  --radius-sm: 14px;
-  --heading: 'Baloo 2', 'Segoe UI', system-ui, sans-serif;
-  --sans: 'Nunito', 'Segoe UI', system-ui, sans-serif;
-  color-scheme: light dark;
-}
+  /* Bulldozers-Design-System (Redesign, siehe design_handoff_junioren_pwa):
+     feste Markenpalette, direkt aus den Design-Tokens übernommen. */
+  --bd-green-900: #00291f;
+  --bd-green-800: #00402f;
+  --bd-green-700: #00604c;
+  --bd-green-600: #008066;
+  --bd-green-500: #129b7c;
+  --bd-green-300: #7fc0b1;
+  --bd-green-200: #b5dcd2;
+  --bd-green-100: #e2f1ed;
+  --bd-green-50: #f2f9f7;
+  --bd-gold-800: #6b5310;
+  --bd-gold-700: #a07c1c;
+  --bd-gold-600: #b78e20;
+  --bd-gold-500: #cfa225;
+  --bd-gold-300: #e3c777;
+  --bd-gold-200: #eeddab;
+  --bd-gold-100: #f8f0d8;
+  --bd-black: #000000;
+  --bd-white: #ffffff;
+  --bd-ink-900: #101413;
+  --bd-ink-700: #333c39;
+  --bd-ink-500: #5d6764;
+  --bd-ink-300: #c3c9c7;
+  --bd-ink-200: #e2e6e5;
+  --bd-ink-100: #f1f3f2;
+  --bd-danger: #b3261e;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0b0d12;
-    --color-surface: #171a21;
-    --color-text: #e5e7eb;
-    --color-text-muted: #9aa1b2;
-    --color-border: #2a2e38;
-    --color-primary: #2f9d6c;
-    --color-accent: #d1a941;
-    --color-danger: #f87171;
-    --color-danger-bg: #3f1d1d;
-  }
+  /* Team-Branding (Phase 6, src/lib/theme.ts): einzige zwei Token, die pro
+     Team via teams.farbe_primaer/-sekundaer zur Laufzeit überschrieben
+     werden. Alle anderen Marken-/Kategorie-Farben oben sind bewusst fest,
+     Teil des Kategorie-Farbcodes statt der Vereins-Individualisierung. */
+  --color-primary: var(--bd-green-600);
+  --color-accent: var(--bd-gold-500);
+  --color-primary-hover: var(--bd-green-700);
+  --color-accent-hover: var(--bd-gold-600);
+
+  --color-bg: var(--bd-ink-100);
+  --color-surface: var(--bd-white);
+  --color-text: var(--bd-ink-900);
+  --color-text-muted: var(--bd-ink-500);
+  --color-border: var(--bd-ink-200);
+  --color-danger: var(--bd-danger);
+  --color-danger-bg: #fbe9e7;
+
+  /* Radien: Card/Control 4px (nahezu eckig), Chips/Fortschrittsbalken 2px,
+     8px nur für grosse Medien und das weisse Sheet über Grün, 999px nur für
+     Tags/Pill-Tabs und den runden Timer-Button. */
+  --radius: 4px;
+  --radius-sm: 2px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+  --heading: var(--sans);
+  --sans: Arial, 'Liberation Sans', Helvetica, sans-serif;
+
+  --shadow-sm: 0 1px 2px rgba(16, 20, 19, 0.1);
+  --shadow-md: 0 2px 6px rgba(16, 20, 19, 0.12);
+  --shadow-lg: 0 8px 24px rgba(16, 20, 19, 0.16);
+  --shadow-focus: 0 0 0 3px rgba(207, 162, 37, 0.55);
+
+  color-scheme: light;
 }
 
 * {
@@ -57,11 +85,21 @@ h3 {
   margin: 0 0 8px;
   font-family: var(--heading);
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 p {
   margin: 0 0 12px;
   color: var(--color-text-muted);
+}
+
+a {
+  color: var(--color-primary-hover);
+}
+
+a:hover {
+  color: var(--bd-green-900);
 }
 
 button,

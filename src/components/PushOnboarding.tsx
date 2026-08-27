@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Bell } from './icons';
 import {
   istPushUnterstuetzt,
   pushAktivieren,
@@ -42,7 +43,10 @@ export function PushOnboarding() {
 
   return (
     <div className="card">
-      <h2>🔔 Benachrichtigungen?</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+        <Bell size={20} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--bd-gold-600)' }} />
+        <h2 style={{ margin: 0 }}>Benachrichtigungen?</h2>
+      </div>
       {error && <div className="alert-error">{error}</div>}
       <p>Wir informieren dich, wenn du ein Abzeichen oder Level-Aufstieg erreichst.</p>
       <div style={{ display: 'flex', gap: 10 }}>

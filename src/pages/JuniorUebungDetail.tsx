@@ -5,9 +5,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { HerzenAuswahl } from '../components/HerzenAuswahl';
+import { KategorieIcon, OrtIcon } from '../components/icons';
 import { Maskottchen, type MaskottchenZustand } from '../components/Maskottchen';
 import { UebungTimer } from '../components/UebungTimer';
-import { KATEGORIE_ICONS, KATEGORIE_LABELS, ORT_ICONS, ORT_LABELS } from '../lib/constants';
+import { KATEGORIE_LABELS, ORT_LABELS } from '../lib/constants';
 import { sendeFreundeschallengePush, sendeGamificationPush } from '../lib/push';
 import { parseUebungTimerSekunden } from '../lib/uebungTimer';
 import type { Selbsteinschaetzung, Uebung } from '../types/database';
@@ -151,7 +152,7 @@ export function JuniorUebungDetail() {
 
       const feierMeldungen: string[] = [];
       if (data.level_aufstieg) {
-        feierMeldungen.push(`Level-Aufstieg! Du bist jetzt Level ${data.neues_level}! 🎉`);
+        feierMeldungen.push(`Level-Aufstieg! Du bist jetzt Level ${data.neues_level}!`);
         // In-App-Fallback (Phase 7): erscheint immer, sobald die App offen ist –
         // unabhängig davon, ob Web Push erlaubt/verfügbar ist.
         showToast({
@@ -179,7 +180,7 @@ export function JuniorUebungDetail() {
       if (data.freundeschallenge_status === 'erfolgreich') {
         const gegnerName = `${data.freundeschallenge_gegner_vorname} ${data.freundeschallenge_gegner_nachname_initiale}.`;
         feierMeldungen.push(
-          `Freundeschallenge mit ${gegnerName} geschafft! +${data.freundeschallenge_punkte} Punkte 🤝`
+          `Freundeschallenge mit ${gegnerName} geschafft! +${data.freundeschallenge_punkte} Punkte`
         );
         showToast({
           icon: '🤝',
@@ -268,7 +269,7 @@ export function JuniorUebungDetail() {
       <DashboardLayout>
         <div className="card">
           <p>Übung nicht gefunden.</p>
-          <Link to="/junior">← Zurück</Link>
+          <Link to="/junior" className="back-link">← Zurück</Link>
         </div>
       </DashboardLayout>
     );
@@ -278,26 +279,48 @@ export function JuniorUebungDetail() {
 
   return (
     <DashboardLayout>
-      <Link to="/junior">← Zurück</Link>
+      <div className="uebung-hero">
+        <Link to="/junior" className="back-link back-link--on-dark" style={{ marginBottom: 0 }}>
+          ← {KATEGORIE_LABELS[uebung.kategorie]}
+        </Link>
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <span className="tag">
-          {KATEGORIE_ICONS[uebung.kategorie]} {KATEGORIE_LABELS[uebung.kategorie]}
-        </span>
-        {uebung.orte.map((o) => (
-          <span key={o} className="tag" style={{ marginLeft: 6 }}>
-            {ORT_ICONS[o]} {ORT_LABELS[o]}
+        <div style={{ textAlign: 'center', marginTop: 22 }}>
+          <span style={{ display: 'inline-flex', color: 'var(--bd-gold-300)' }}>
+            <KategorieIcon kategorie={uebung.kategorie} size={44} />
           </span>
-        ))}
-        <h2>{uebung.titel}</h2>
-        {uebung.bild_url && (
-          <img
-            src={uebung.bild_url}
-            alt={uebung.titel}
-            style={{ maxWidth: '100%', borderRadius: 'var(--radius-sm)', margin: '12px 0' }}
-          />
+          <h2
+            style={{
+              fontSize: '1.625rem',
+              lineHeight: 1.2,
+              margin: '12px 0 0',
+              color: '#fff',
+            }}
+          >
+            {uebung.titel}
+          </h2>
+          {uebung.bild_url && (
+            <img
+              src={uebung.bild_url}
+              alt={uebung.titel}
+              style={{ maxWidth: '100%', borderRadius: 'var(--radius-lg)', margin: '12px 0 0' }}
+            />
+          )}
+          <p style={{ fontSize: '0.9375rem', lineHeight: 1.5, color: 'var(--bd-green-100)', margin: '10px 0 0' }}>
+            {uebung.beschreibung}
+          </p>
+        </div>
+
+        {uebung.orte.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
+            {uebung.orte.map((o) => (
+              <span key={o} className="hero-chip">
+                <OrtIcon ort={o} size={16} />
+                {ORT_LABELS[o]}
+              </span>
+            ))}
+          </div>
         )}
-        <p>{uebung.beschreibung}</p>
+
         {timerSekunden !== null && (
           <UebungTimer sekunden={timerSekunden} altersgruppeLabel={team?.altersgruppe ?? ''} />
         )}
@@ -331,25 +354,22 @@ export function JuniorUebungDetail() {
         {feedback && <Maskottchen zustand={feedback.zustand} text={feedback.text} />}
         {witz && (
           <p style={{ marginTop: 10, fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
-            😄 {witz}
+            {witz}
           </p>
         )}
 
         {limitErreicht ? (
-          <p>
-            Du hast diese Übung heute schon 3x eingeschätzt. Morgen geht’s weiter! 💪
-          </p>
+          <p>Du hast diese Übung heute schon 3x eingeschätzt. Morgen geht’s weiter!</p>
         ) : (
           <div className="field">
-            <label>Hast du es geschafft?</label>
-            <div className="alert-error" style={{ marginBottom: 10 }}>
-              ⚖️ Fairplay ist Ehrensache: Ich klicke nur "Geschafft", wenn ich die Übung auch
-              wirklich absolviert habe.
+            <label>{timerSekunden !== null ? 'Nach dem Timer' : 'Hast du es geschafft?'}</label>
+            <div className="fairplay-note">
+              Fairplay ist Ehrensache: tippe nur «Geschafft», wenn du die Übung auch wirklich
+              gemacht hast.
             </div>
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <button
                 className="btn-primary"
-                style={{ flex: 1, width: 'auto' }}
                 onClick={handleGeschafftKlick}
                 disabled={submitting}
               >
@@ -357,11 +377,10 @@ export function JuniorUebungDetail() {
               </button>
               <button
                 className="btn-secondary"
-                style={{ flex: 1 }}
                 onClick={handleNichtGeschafftKlick}
                 disabled={submitting}
               >
-                {submitting ? 'Wird gespeichert …' : 'Nicht geschafft'}
+                {submitting ? 'Wird gespeichert …' : 'Noch nicht'}
               </button>
             </div>
           </div>

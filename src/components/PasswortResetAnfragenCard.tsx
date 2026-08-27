@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
+import { Bell } from './icons';
 import { leseEdgeFunctionFehler } from '../lib/functionsError';
 import type { PasswortResetAnfrage, User } from '../types/database';
 
@@ -111,7 +112,10 @@ export function PasswortResetAnfragenCard() {
 
   return (
     <div className="card">
-      <h2>🔔 Offene Passwort-Reset-Anfragen</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+        <Bell size={20} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--bd-gold-600)' }} />
+        <h2 style={{ margin: 0 }}>Offene Passwort-Reset-Anfragen</h2>
+      </div>
       {error && <div className="alert-error">{error}</div>}
 
       {loading && <p>Wird geladen …</p>}
