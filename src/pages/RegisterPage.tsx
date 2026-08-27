@@ -2,13 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import type { Rolle, Team } from '../types/database';
-
-const ROLE_LABELS: Record<Rolle, string> = {
-  junior: 'Junior',
-  trainer: 'Trainer',
-  admin: 'Admin',
-};
+import type { Team } from '../types/database';
 
 export function RegisterPage() {
   const { session, signUp } = useAuth();
@@ -18,58 +12,40 @@ export function RegisterPage() {
   const [nachname, setNachname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rolle, setRolle] = useState<Rolle>('junior');
-  const [altersgruppe, setAltersgruppe] = useState<string>('');
+  const [passwordWiederholen, setPasswordWiederholen] = useState('');
   const [teamId, setTeamId] = useState('');
 
   const [teams, setTeams] = useState<Team[]>([]);
-  const [adminAlreadyExists, setAdminAlreadyExists] = useState(true);
   const [loadingOptions, setLoadingOptions] = useState(true);
-
-  const ALTERSGRUPPEN = ['U9', 'U12', 'U15', 'U18'] as const;
 
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    async function loadOptions() {
-      const [teamsResult, adminExistsResult] = await Promise.all([
-        supabase.from('teams').select('*').order('name'),
-        supabase.rpc('admin_exists'),
-      ]);
-
-      if (teamsResult.data) setTeams(teamsResult.data);
-      setAdminAlreadyExists(adminExistsResult.data ?? true);
+    async function loadTeams() {
+      const { data } = await supabase.from('teams').select('*').order('name');
+      setTeams(data ?? []);
       setLoadingOptions(false);
     }
-    void loadOptions();
+    void loadTeams();
   }, []);
 
   if (session) {
     return <Navigate to="/" replace />;
   }
 
-  const availableRoles: Rolle[] = adminAlreadyExists
-    ? ['junior', 'trainer']
-    : ['junior', 'trainer', 'admin'];
-
-  const needsTeam = rolle === 'junior' || rolle === 'trainer';
-  const filteredTeams = altersgruppe
-    ? teams.filter((t) => t.altersgruppe === altersgruppe)
-    : [];
-
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (needsTeam && !altersgruppe) {
-      setError('Bitte wähle deine Altersgruppe aus.');
+    if (!teamId) {
+      setError('Bitte wähle ein Team aus.');
       return;
     }
 
-    if (needsTeam && !teamId) {
-      setError('Bitte wähle ein Team aus.');
+    if (password !== passwordWiederholen) {
+      setError('Die beiden Passwörter stimmen nicht überein.');
       return;
     }
 
@@ -80,8 +56,8 @@ export function RegisterPage() {
         password,
         vorname,
         nachname,
-        rolle,
-        teamId: needsTeam ? teamId : null,
+        rolle: 'junior',
+        teamId,
       });
 
       if (needsEmailConfirmation) {
@@ -98,154 +74,111 @@ export function RegisterPage() {
 
   return (
     <div className="app-shell">
-      <div className="auth-card">
-        <div className="brand">
-          <img
-            src="/logo-bulldozers_farbig.png"
-            alt="Streethockeyclub Bulldozers"
-            className="brand-logo"
-          />
-          <div>
-            <h1 style={{ fontSize: '1.25rem' }}>Konto erstellen</h1>
-          </div>
+      <div className="auth-card auth-card--split">
+        <div className="auth-hero">
+          <img src="/logo-bulldozers_farbig.png" alt="" className="auth-hero-logo" />
+          <h1 className="auth-hero-title" style={{ fontSize: '1.5rem' }}>
+            Konto erstellen
+          </h1>
+          <p className="auth-hero-claim">Trainiere zuhause, sammle Punkte, steig im Level auf.</p>
         </div>
 
-        {error && <div className="alert-error">{error}</div>}
-        {info && <div className="alert-info">{info}</div>}
+        <div className="auth-form-zone">
+          {error && <div className="alert-error">{error}</div>}
+          {info && <div className="alert-info">{info}</div>}
 
-        {!info && (
-          <form onSubmit={handleSubmit}>
-            <div className="field">
-              <label htmlFor="vorname">Vorname</label>
-              <input
-                id="vorname"
-                type="text"
-                required
-                value={vorname}
-                onChange={(e) => setVorname(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="nachname">Nachname</label>
-              <input
-                id="nachname"
-                type="text"
-                required
-                value={nachname}
-                onChange={(e) => setNachname(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="email">E-Mail</label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="password">Passwort</label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                minLength={6}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            <div className="field">
-              <label>Rolle</label>
-              <div className="radio-group">
-                {availableRoles.map((r) => (
-                  <label key={r}>
-                    <input
-                      type="radio"
-                      name="rolle"
-                      value={r}
-                      checked={rolle === r}
-                      onChange={() => setRolle(r)}
-                    />
-                    {ROLE_LABELS[r]}
-                  </label>
-                ))}
+          {!info && (
+            <form onSubmit={handleSubmit}>
+              <div className="field">
+                <label htmlFor="vorname">Vorname</label>
+                <input
+                  id="vorname"
+                  type="text"
+                  required
+                  value={vorname}
+                  onChange={(e) => setVorname(e.target.value)}
+                />
               </div>
-              {adminAlreadyExists && (
-                <small style={{ color: 'var(--color-text-muted)' }}>
-                  Es existiert bereits ein Admin-Konto. Weitere Admins können nur von einem
-                  bestehenden Admin befördert werden.
-                </small>
-              )}
-            </div>
+              <div className="field">
+                <label htmlFor="nachname">Nachname</label>
+                <input
+                  id="nachname"
+                  type="text"
+                  required
+                  value={nachname}
+                  onChange={(e) => setNachname(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="email">E-Mail</label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="password">Passwort</label>
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={6}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="password-wiederholen">Passwort wiederholen</label>
+                <input
+                  id="password-wiederholen"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={6}
+                  required
+                  value={passwordWiederholen}
+                  onChange={(e) => setPasswordWiederholen(e.target.value)}
+                />
+              </div>
 
-            {needsTeam && (
-              <>
-                <div className="field">
-                  <label>Altersgruppe</label>
-                  <div className="radio-group">
-                    {ALTERSGRUPPEN.map((ag) => (
-                      <label key={ag}>
-                        <input
-                          type="radio"
-                          name="altersgruppe"
-                          value={ag}
-                          checked={altersgruppe === ag}
-                          onChange={(e) => {
-                            setAltersgruppe(e.target.value);
-                            setTeamId('');
-                          }}
-                        />
-                        {ag}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {altersgruppe && (
-                  <div className="field">
-                    <label htmlFor="team">Team</label>
-                    <select
-                      id="team"
-                      required
-                      value={teamId}
-                      onChange={(e) => setTeamId(e.target.value)}
-                      disabled={loadingOptions || filteredTeams.length === 0}
-                    >
-                      <option value="" disabled>
-                        {filteredTeams.length === 0
-                          ? 'Keine Teams für diese Altersgruppe'
-                          : 'Team wählen …'}
-                      </option>
-                      {filteredTeams.map((team) => (
-                        <option key={team.id} value={team.id}>
-                          {team.name}
-                        </option>
-                      ))}
-                    </select>
-                    {filteredTeams.length === 0 && !loadingOptions && (
-                      <small style={{ color: 'var(--color-text-muted)' }}>
-                        Keine Teams für {altersgruppe} angelegt. Ein Admin muss zuerst ein Team
-                        erstellen.
-                      </small>
-                    )}
-                  </div>
+              <div className="field">
+                <label htmlFor="team">Team</label>
+                <select
+                  id="team"
+                  required
+                  value={teamId}
+                  onChange={(e) => setTeamId(e.target.value)}
+                  disabled={loadingOptions || teams.length === 0}
+                >
+                  <option value="" disabled>
+                    {teams.length === 0 ? 'Keine Teams vorhanden' : 'Team wählen …'}
+                  </option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name} ({team.altersgruppe})
+                    </option>
+                  ))}
+                </select>
+                {teams.length === 0 && !loadingOptions && (
+                  <small style={{ color: 'var(--color-text-muted)' }}>
+                    Noch keine Teams angelegt. Ein Admin muss zuerst ein Team erstellen.
+                  </small>
                 )}
-              </>
-            )}
+              </div>
 
-            <button className="btn-primary" type="submit" disabled={submitting}>
-              {submitting ? 'Registrieren …' : 'Registrieren'}
-            </button>
-          </form>
-        )}
+              <button className="btn-primary" type="submit" disabled={submitting}>
+                {submitting ? 'Registrieren …' : 'Registrieren'}
+              </button>
+            </form>
+          )}
 
-        <div className="form-footer">
-          Schon ein Konto? <Link to="/login">Anmelden</Link>
+          <div className="form-footer">
+            Schon ein Konto? <Link to="/login">Anmelden</Link>
+          </div>
         </div>
       </div>
     </div>
