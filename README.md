@@ -39,11 +39,17 @@ Bearbeiten-/Löschen-Buttons in der Übungen-/Nutzerverwaltung nicht mehr abgesc
 **Phase 14:** Passwort-Reset-Anfragen — ein Nutzer, der sein Passwort
 vergessen hat, meldet das über `/passwort-vergessen`; alle Admins werden per Push benachrichtigt
 und setzen das neue Passwort direkt in der Nutzerverwaltung (kein E-Mail-Versand nötig).
-**Phase 15 (dieses Repo-Stadium):** Maskottchen "Bully" als oranger Streethockey-Ball statt
+**Phase 15:** Maskottchen "Bully" als oranger Streethockey-Ball statt
 Hockey-Puck neu gezeichnet (Design-Vorlage vom Verein) — dieselben 3 Zustände und Komponenten-API.
 Ausserdem: die Begrüssungs- und Witz-Listen enthielten noch vereinzelt Eishockey-Bezüge
 ("Eis", "Schlittschuhe") aus der ursprünglichen Puck-Optik — diese wurden entfernt, passend zum
 Streethockey-Kontext des Vereins.
+**Phase 17 (dieses Repo-Stadium):** Rolle "Trainer" entfernt (bestehende Trainer-Konten wurden zu
+Admin hochgestuft; Admin deckt alle bisherigen Trainer-Funktionen ab), mehrere Admin-Konten sind
+uneingeschränkt möglich, Team-Branding (Logo/Farben pro Team) zurückgebaut — alle Teams verwenden
+einheitlich das Vereinslogo/-Design. Ausserdem: Admin kann in der Nutzerverwaltung das Passwort
+eines Nutzers direkt neu setzen und bekommt danach ein Popup mit einem fertigen, 1:1 per E-Mail
+verschickbaren Text (siehe Abschnitt "Nutzerverwaltung").
 
 ## Tech-Stack
 
@@ -66,7 +72,7 @@ src/
   components/       Wiederverwendbare UI-/Routing-Bausteine (ProtectedRoute, RoleRoute, ...)
   contexts/         AuthContext (Session, Profil, signUp/signIn/signOut)
   lib/              Supabase-Client, Rollen-Hilfsfunktionen
-  pages/            Login, Register, Junior/Trainer/Admin-Startseiten
+  pages/            Login, Register, Junior/Admin-Startseiten
   types/            TypeScript-Typen für das Datenmodell (spiegelt das SQL-Schema)
 supabase/
   migrations/       SQL-Migrationen (Schema, Rollen-Funktionen, RLS-Policies)
@@ -165,21 +171,23 @@ node scripts/generate-icons.mjs   # Platzhalter-App-Icons neu erzeugen
 
 ## Erste Schritte in der App
 
-1. **Registrieren** (`/register`): Der erste registrierte Nutzer kann die Rolle **Admin** wählen
-   (Bootstrap). Danach ist die Admin-Option für neue Registrierungen gesperrt (siehe
-   Sicherheitshinweise unten).
-2. Als Admin einloggen und auf der Admin-Startseite ein **Team** anlegen (Name + Altersgruppe).
-3. Danach können sich **Trainer** und **Junioren** registrieren und dieses Team auswählen.
-4. Nach dem Login leitet die App automatisch zur passenden Startseite weiter:
-   `/junior`, `/trainer` oder `/admin`.
+1. **Registrieren** (`/register`): Das Formular legt immer ein **Junior**-Konto an; ein Team muss
+   dabei ausgewählt werden. Admin-Konten entstehen ausschliesslich über einen bestehenden Admin
+   (Nutzerverwaltung im Admin-Bereich) — es sind beliebig viele Admins gleichzeitig möglich.
+2. Um überhaupt ein erstes Admin-Konto zu erhalten: einmalig direkt in der Datenbank die Rolle
+   eines registrierten Nutzers auf `admin` setzen (siehe Sicherheitshinweise unten). Danach kann
+   dieser Admin über die Nutzerverwaltung beliebig weitere Admins anlegen/befördern.
+3. Als Admin einloggen und auf der Admin-Startseite ein **Team** anlegen (Name + Altersgruppe).
+4. Danach können sich **Junioren** registrieren und dieses Team auswählen.
+5. Nach dem Login leitet die App automatisch zur passenden Startseite weiter: `/junior` oder
+   `/admin`.
 
 ## Rollen & Berechtigungen
 
-| Rolle   | Rechte |
-|---------|--------|
-| Junior  | Eigene Daten, Übungen der eigenen Altersgruppe, Ranglisten |
-| Trainer | Wie Junior, zusätzlich Lese-/Schreibzugriff auf Junioren des eigenen Teams, Übungen erstellen/bearbeiten |
-| Admin   | Voller Zugriff auf alle Teams, Junioren, Übungen, Nutzerverwaltung |
+| Rolle  | Rechte |
+|--------|--------|
+| Junior | Eigene Daten, Übungen der eigenen Altersgruppe, Ranglisten |
+| Admin  | Voller Zugriff auf alle Teams, Junioren, Übungen, Nutzerverwaltung |
 
 Die Durchsetzung erfolgt auf zwei Ebenen:
 
@@ -189,16 +197,16 @@ Die Durchsetzung erfolgt auf zwei Ebenen:
   `supabase/migrations/0001_init.sql`. Selbst bei einem Bug im Frontend kann ein Junior z. B.
   keine fremden Nutzerdaten lesen, weil Postgres die Anfrage bereits ablehnt.
 
-## Sicherheitshinweise (Phase 1)
+## Sicherheitshinweise (Phase 1, Admin-Rolle angepasst in Phase 17)
 
-- **Admin-Selbstregistrierung ist bewusst eingeschränkt:** Die Aufgabenstellung sieht vor, dass
-  "Admin" bei der Registrierung wählbar ist. Damit sich aber nicht beliebige Nutzer selbst zum
-  Admin machen können, erlaubt die Datenbank (`handle_new_user()`-Trigger) die Rolle `admin` nur
-  für den allerersten registrierten Nutzer (Bootstrap). Jede weitere Registrierung mit
-  gewünschter Admin-Rolle wird serverseitig automatisch auf `junior` zurückgestuft. Das
-  Registrierungsformular blendet die Option zusätzlich aus, sobald ein Admin existiert. Weitere
-  Admins zu ernennen ist in Phase 1 noch nicht per UI möglich (späteren Phasen: Admin befördert
-  Nutzer über die Nutzerverwaltung).
+- **Admin-Selbstregistrierung ist ausgeschlossen:** Das Registrierungsformular (`/register`) bietet
+  keine Rollenwahl an und legt ausnahmslos ein `junior`-Konto an — niemand kann sich selbst zum
+  Admin machen. Das erste Admin-Konto entsteht daher einmalig manuell (direkt in der Datenbank,
+  z. B. `update public.users set rolle = 'admin' where email = '...';`, nachdem sich die Person
+  regulär registriert hat). Danach kann dieser Admin über die Nutzerverwaltung
+  (`admin-user-management`, siehe unten) beliebig viele weitere Nutzer als Admin anlegen oder
+  bestehende Nutzer zu Admin befördern — es gibt bewusst keine Beschränkung auf einen einzigen
+  Admin.
 - Nutzer können ihre eigene `rolle` oder `team_id` nicht nachträglich selbst ändern
   (Privilege-Escalation-Schutz per DB-Trigger) — das darf nur ein Admin.
 - Alle Tabellen haben Row-Level-Security aktiviert; es gibt keinen ungeschützten Vollzugriff.
@@ -207,8 +215,10 @@ Die Durchsetzung erfolgt auf zwei Ebenen:
 
 Siehe `supabase/migrations/0001_init.sql` für das vollständige Schema inkl. Kommentaren:
 
-- `teams` — Name, Altersgruppe (U9/U12/U15/U18), `logo_url`/`farbe_primaer`/`farbe_sekundaer`
-  (seit Phase 6 im Admin-Bereich editierbar, siehe unten)
+- `teams` — Name, Altersgruppe (U9/U12/U15/U18). Die Spalten `logo_url`/`farbe_primaer`/
+  `farbe_sekundaer` existieren aus historischen Gründen noch im Schema (Team-Branding, Phase 6),
+  werden von der App seit Phase 17 aber nirgends mehr gelesen oder geschrieben (siehe Abschnitt
+  "Design, Branding & Maskottchen").
 - `users` — Profil, Rolle, Team-Zugehörigkeit, Punkte/Level/täglicher+wöchentlicher Streak
   (seit Phase 4 aktiv befüllt)
 - `uebungen` — Titel, Beschreibung, Kategorie, Ziel-Altersgruppen, Bild-URL, Ersteller.
@@ -220,7 +230,7 @@ Siehe `supabase/migrations/0001_init.sql` für das vollständige Schema inkl. Ko
 
 ## Übungsverwaltung (Phase 2)
 
-Trainer und Admin sehen auf ihrer Startseite eine **Übungen**-Karte (`UebungenManager`):
+Admin sieht auf der Startseite eine **Übungen**-Karte (`UebungenManager`):
 
 - **Erstellen/Bearbeiten** (`UebungForm`): Titel, Beschreibung, Kategorie (genau eine),
   Altersgruppen (Mehrfachauswahl), Punkte (Standard 10 bei neuer Übung, nur für Admins editierbar
@@ -231,11 +241,10 @@ Trainer und Admin sehen auf ihrer Startseite eine **Übungen**-Karte (`UebungenM
   und mindestens eine Altersgruppe müssen ausgewählt sein, bevor gespeichert werden kann.
 - **Filter:** Übersicht lässt sich nach Kategorie und Altersgruppe filtern, sortiert nach
   Kategorie.
-- **Rechte:** Bearbeiten/Löschen ist nur für die eigene Übung (Ersteller) bzw. für Admin (alle)
-  sichtbar — serverseitig zusätzlich über RLS-Policies auf `uebungen` und `storage.objects`
-  erzwungen. Löschen erfordert eine Bestätigung im Dialog (`ConfirmDialog`).
-- Welche Übungen ein Trainer überhaupt sieht, wird bereits über RLS auf die Altersgruppe(n)
-  seines eigenen Teams beschränkt; Admin sieht alle Übungen aller Altersgruppen.
+- **Rechte:** Erstellen/Bearbeiten/Löschen ist Admins vorbehalten — serverseitig über
+  RLS-Policies auf `uebungen` und `storage.objects` erzwungen (Migration 0022, vorher zusätzlich
+  Trainer als Ersteller der eigenen Übung; die Rolle Trainer wurde entfernt). Löschen erfordert
+  eine Bestätigung im Dialog (`ConfirmDialog`).
 
 ## Junior-Ansicht & Selbsteinschätzung (Phase 3)
 
@@ -249,7 +258,7 @@ Trainer und Admin sehen auf ihrer Startseite eine **Übungen**-Karte (`UebungenM
      hat keinen Einfluss auf die Punktevergabe.
   Jede Einreichung legt einen neuen, datierten Verlaufseintrag an (mehrfache Einschätzungen
   derselben Übung an verschiedenen Tagen bleiben alle sichtbar) und läuft direkt, ohne
-  Trainer-Freigabe.
+  Freigabe durch Dritte.
 - **Verlaufsansicht** (`/junior/verlauf`, `JuniorVerlauf`): alle bisherigen Selbsteinschätzungen
   des eigenen Kontos, neueste zuerst.
 - **Punktevergabe:** Bei "Geschafft = Ja" werden serverseitig Punkte auf `users.punkte_total`
@@ -402,26 +411,18 @@ Login) und die In-App-Fallback-Benachrichtigung sind in Phase 7 abgerundet, sieh
 - Badge-Vergabe passiert ausschliesslich serverseitig in `pruefe_und_vergib_badges()` — es gibt
   keine Insert-Policy für `junior_badges`, ein Client kann sich also keine Badges selbst verleihen.
 
-## Design, Branding & Maskottchen (Phase 6)
+## Design, Branding & Maskottchen (Phase 6, Team-Branding zurückgebaut in Phase 17)
 
 ### Vereinslogo & Farben
 
-Jedes Team hat sein eigenes Branding (`teams.logo_url`/`farbe_primaer`/`farbe_sekundaer`, bereits
-seit Phase 1 im Schema vorgesehen). Admin verwaltet es direkt in der Teams-Liste der
-Admin-Startseite (Button **"Branding"** → `TeamBrandingForm`):
-
-- Logo-Upload (Bild-Datei) in den Storage-Bucket `team-logos` (öffentlich lesbar, Schreibzugriff
-  nur Admin — Migration 0005). Ein erneuter Upload ersetzt das bisherige Logo.
-- Primär-/Sekundärfarbe als Hex-Code-Eingabe **und** natives Farbwähler-Feld (`<input type="color">`),
-  synchron gehalten. Keine automatische Farbextraktion aus dem Logo nötig (bewusst nicht gefordert).
-
-Sobald ein Nutzer eingeloggt ist, lädt `AuthContext` das Team des Nutzers und wendet dessen Farben
-als CSS-Design-Tokens (`--color-primary`/`--color-accent`, siehe `src/lib/theme.ts`) global auf die
-App an — Buttons, Progress-Bar, Tags etc. übernehmen die Vereinsfarben automatisch, ohne dass
-einzelne Komponenten das Team kennen müssen. Nutzer ohne Team (i. d. R. Admin) sehen das
-Standard-Theme. Das Logo erscheint prominent im App-Header (`DashboardLayout`); auf dem
-Login-/Register-Screen (vor der Anmeldung, wenn das Team noch nicht bekannt ist) bleibt bewusst das
-generische App-Branding.
+Team-Branding (individuelles Logo/Farben pro Team, ursprünglich Phase 6: Button **"Branding"** auf
+der Admin-Startseite → `TeamBrandingForm`) wurde zurückgebaut — alle Teams verwenden einheitlich
+das feste Bulldozers-Logo/-Design (`public/logo-bulldozers_farbig.png`, feste Markenpalette,
+siehe unten). `TeamBrandingForm.tsx` und `uploadTeamLogo()` wurden entfernt, `src/lib/theme.ts`
+(setzte `--color-primary`/`--color-accent` zur Laufzeit pro Team) ebenfalls. Die Spalten
+`teams.logo_url`/`farbe_primaer`/`farbe_sekundaer` sowie der Storage-Bucket `team-logos` inkl.
+bereits hochgeladener Logos bleiben unangetastet in der Datenbank (keine destruktive
+Schema-/Datenänderung nötig) — nur das Schreibrecht auf den Bucket wurde entzogen (Migration 0022).
 
 ### Bulldozers-Design-System (Redesign, Phase 16)
 
@@ -431,14 +432,12 @@ Design-Handoff (`design_handoff_junioren_pwa`) ersetzt — Funktionsumfang und
 Seitenaufbau blieben dabei unverändert, nur Optik/Typografie/Icons wurden
 nachgebaut:
 
-- **Feste Markenpalette** statt Team-weitem Farbverlauf: die Grün-/Gold-/
-  Ink-Skala aus dem Handoff (`--bd-green-*`/`--bd-gold-*`/`--bd-ink-*`,
-  `src/index.css`) ist überall fest verdrahtet. Die Team-Branding-Funktion aus
-  obigem Abschnitt bleibt bestehen, wirkt aber gezielt nur noch auf die zwei
-  Tokens `--color-primary`/`--color-accent` (Primärbutton, Links, Fortschritt,
-  Technik-Kachel) — die restliche feste Markenpalette (Kategorie-Farbcode,
-  schwarzer Header, Neutralfarben) ist bewusst nicht team-individualisierbar,
-  da sie Teil des Kategorie-/Marken-Systems ist statt der Vereinsfarben.
+- **Feste Markenpalette:** die Grün-/Gold-/Ink-Skala aus dem Handoff
+  (`--bd-green-*`/`--bd-gold-*`/`--bd-ink-*`, `src/index.css`) ist überall fest
+  verdrahtet, inklusive der Tokens `--color-primary`/`--color-accent`
+  (Primärbutton, Links, Fortschritt, Technik-Kachel). Seit dem Rückbau des
+  Team-Brandings (Phase 17) gibt es keine Laufzeit-Überschreibung dieser
+  Tokens mehr — alle Teams sehen exakt dieselbe Markenpalette.
 - **Arial only** (`--sans`), kein Webfont mehr — die vorherigen Google-Fonts-
   Links (Baloo 2/Nunito) wurden aus `index.html` entfernt. Überschriften
   durchgängig fett/uppercase mit Letter-Spacing statt der bisherigen runden
@@ -563,18 +562,24 @@ und `src/pages/JuniorFreundeschallenge.tsx` (`/junior/freundeschallenge`, verlin
   jeweils unterschiedlichen Gegnern (`kriterium_typ` `freundeschallenge_erfolgreich` bzw.
   `freundeschallenge_teamplayer`, datengetrieben wie der restliche Badge-Katalog).
 
-## Nutzerverwaltung (Phase 10)
+## Nutzerverwaltung (Phase 10, Passwort-Direktreset in Phase 17)
 
 Admins sehen auf ihrer Startseite eine **Nutzerverwaltung**-Karte
-(`NutzerverwaltungManager`), über die sich Nutzer aller Rollen (Junior, Trainer, Admin) anlegen,
+(`NutzerverwaltungManager`), über die sich Nutzer aller Rollen (Junior, Admin) anlegen,
 bearbeiten und löschen lassen:
 
 - **Übersicht & Filter:** Tabelle aller Nutzer (Name, E-Mail, Rolle, Team), filterbar nach Rolle.
-- **Bearbeiten** (`NutzerForm`): Vorname, Nachname, Rolle und — sofern die Rolle Junior oder
-  Trainer ist — das Team lassen sich ändern. Das läuft über ein normales `update` auf
-  `public.users` und ist bereits durch die RLS-Policy `users_update_admin` (Migration 0001)
-  abgesichert; es braucht dafür keine eigene Server-Logik. Die E-Mail-Adresse ist hier bewusst
-  nicht editierbar, da sie zusätzlich der Login-E-Mail in `auth.users` entsprechen muss.
+- **Bearbeiten** (`NutzerForm`): Vorname, Nachname, Rolle und — sofern die Rolle Junior ist — das
+  Team lassen sich ändern. Das läuft über ein normales `update` auf `public.users` und ist bereits
+  durch die RLS-Policy `users_update_admin` (Migration 0001) abgesichert; es braucht dafür keine
+  eigene Server-Logik. Die E-Mail-Adresse ist hier bewusst nicht editierbar, da sie zusätzlich der
+  Login-E-Mail in `auth.users` entsprechen muss.
+- **Passwort direkt neu setzen** (Phase 17): beim Bearbeiten eines bestehenden Nutzers kann der
+  Admin über ein eigenes Feld sofort ein neues Passwort setzen (`admin-user-management`, Aktion
+  `reset-password`, ohne dass zuvor eine Anfrage über `/passwort-vergessen` nötig ist). Danach
+  öffnet sich ein Popup (`PasswortEmailDialog`) mit einem fertigen Text zum 1:1 Kopieren in eine
+  E-Mail an den Nutzer (Name, E-Mail-Adresse, neues Passwort) — derselbe Dialog erscheint auch beim
+  Abarbeiten offener Passwort-Reset-Anfragen (`PasswortResetAnfragenCard`).
 - **Anlegen & Löschen** (`supabase/functions/admin-user-management`): Ein neues Konto braucht
   einen `auth.users`-Eintrag (Passwort, E-Mail-Bestätigung überspringen), und Löschen muss
   denselben Eintrag entfernen (`public.users` hängt per `on delete cascade` daran) — beides ist
@@ -631,7 +636,7 @@ können zusätzlich mit 1–5 Herzen bewerten, wie cool sie eine Übung generell
   (Migration 0001) erlaubte das serverseitig schon immer — es fehlte nur der Button. Mitglieder
   eines gelöschten Teams verlieren ihre Team-Zugehörigkeit (`users.team_id` steht `on delete set
   null`, siehe Migration 0001) und müssen danach einem neuen Team zugewiesen werden.
-- **Übungsorte** (`uebungen.orte`, Migration 0016, angepasst in 0017): Trainer/Admin können beim
+- **Übungsorte** (`uebungen.orte`, Migration 0016, angepasst in 0017): Admin kann beim
   Erstellen/Bearbeiten einer Übung Mehrfachauswahl-Checkboxen setzen, wo sie am besten gemacht
   wird — optional, analog zur Altersgruppen-Auswahl. Zwei Werte: "Zuhause" (🏠) und "Spielfeld"
   (🏒, Enum-Wert intern weiterhin `halle`). Beide erhalten ein passendes Symbol direkt auf der
@@ -734,9 +739,5 @@ lahmgelegt.
   bewusst admin-gestützt statt per E-Mail-Link (siehe Abschnitt "Passwort-Reset-Anfragen").
 - Web Push erfordert ein deploytes Supabase-Projekt mit Edge Functions + VAPID-Secrets; lokal ohne
   diese Konfiguration bleibt der Rest der App uneingeschränkt nutzbar.
-- Automatische Farbextraktion aus dem Logo gibt es nicht (laut Aufgabenstellung nicht nötig) —
-  Primär-/Sekundärfarbe werden manuell eingegeben.
-- Login-/Register-Screen zeigen bewusst das generische App-Branding statt Team-Logo/-Farben, da vor
-  der Anmeldung noch kein Team bekannt ist (die App unterstützt mehrere Teams/Vereine gleichzeitig).
 - Eine offene Freundeschallenge-Anfrage kann vom Ersteller nicht zurückgezogen werden — sie läuft
   weiter, bis der Empfänger annimmt/ablehnt oder sie durch Zeitablauf scheitert.

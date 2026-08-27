@@ -9,7 +9,6 @@ import {
 } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
-import { wendeTeamThemeAn } from '../lib/theme';
 import type { Rolle, Team, User } from '../types/database';
 
 interface SignUpInput {
@@ -134,13 +133,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await loadProfile(session.user.id);
     }
   }, [session, loadProfile]);
-
-  // Vereinsfarben (Phase 6) als CSS-Design-Tokens auf die gesamte App anwenden,
-  // sobald sich das Team des eingeloggten Nutzers ändert (z. B. Login/Logout,
-  // Admin passt Farben an und ein Refresh lädt sie neu).
-  useEffect(() => {
-    wendeTeamThemeAn(team);
-  }, [team]);
 
   const value = useMemo<AuthContextValue>(
     () => ({ session, profile, team, loading, signUp, signIn, signOut, refreshProfile }),

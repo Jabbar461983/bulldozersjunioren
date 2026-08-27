@@ -27,10 +27,6 @@
   --bd-ink-100: #f1f3f2;
   --bd-danger: #b3261e;
 
-  /* Team-Branding (Phase 6, src/lib/theme.ts): einzige zwei Token, die pro
-     Team via teams.farbe_primaer/-sekundaer zur Laufzeit überschrieben
-     werden. Alle anderen Marken-/Kategorie-Farben oben sind bewusst fest,
-     Teil des Kategorie-Farbcodes statt der Vereins-Individualisierung. */
   --color-primary: var(--bd-green-600);
   --color-accent: var(--bd-gold-500);
   --color-primary-hover: var(--bd-green-700);

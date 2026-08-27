@@ -4,7 +4,6 @@ import { levelFortschritt } from '../lib/gamification';
 
 const ROLE_LABELS: Record<string, string> = {
   junior: 'Junior',
-  trainer: 'Trainer',
   admin: 'Admin',
 };
 
@@ -15,12 +14,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const { profile, team, signOut } = useAuth();
 
   const fortschritt = profile ? levelFortschritt(profile.punkte_total) : null;
-  const logoUrl = team?.logo_url || '/logo-bulldozers_farbig.png';
 
   return (
     <div className="app-shell app-shell--dashboard">
       <div className="dashboard-header">
-        <img src={logoUrl} alt="" aria-hidden="true" className="dashboard-header-watermark" />
+        <img
+          src="/logo-bulldozers_farbig.png"
+          alt=""
+          aria-hidden="true"
+          className="dashboard-header-watermark"
+        />
         <div className="dashboard-header-top">
           <div>
             <div className="dashboard-eyebrow">Bulldozers Juniorentraining</div>

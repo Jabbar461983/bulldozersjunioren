@@ -11,7 +11,6 @@ import { JuniorUebungDetail } from './pages/JuniorUebungDetail';
 import { JuniorVerlauf } from './pages/JuniorVerlauf';
 import { JuniorProfil } from './pages/JuniorProfil';
 import { JuniorFreundeschallenge } from './pages/JuniorFreundeschallenge';
-import { TrainerHome } from './pages/TrainerHome';
 import { AdminHome } from './pages/AdminHome';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RoleRedirect } from './pages/RoleRedirect';
@@ -78,17 +77,6 @@ function App() {
                 <ProtectedRoute>
                   <RoleRoute allowed={['junior']}>
                     <JuniorFreundeschallenge />
-                  </RoleRoute>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/trainer"
-              element={
-                <ProtectedRoute>
-                  <RoleRoute allowed={['trainer', 'admin']}>
-                    <TrainerHome />
                   </RoleRoute>
                 </ProtectedRoute>
               }

@@ -1,7 +1,7 @@
 // Zentrale Typdefinitionen für das Datenmodell aus Phase 1.
 // Spiegelt die Tabellen aus supabase/migrations/0001_init.sql wider.
 
-export type Rolle = 'junior' | 'trainer' | 'admin';
+export type Rolle = 'junior' | 'admin';
 
 export type Altersgruppe = 'U9' | 'U12' | 'U15' | 'U18';
 

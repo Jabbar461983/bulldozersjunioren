@@ -4,7 +4,6 @@ import type { Altersgruppe, Team } from '../types/database';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { ALTERSGRUPPEN } from '../lib/constants';
 import { UebungenManager } from '../components/UebungenManager';
-import { TeamBrandingForm } from '../components/TeamBrandingForm';
 import { FreundeschallengeKonfigurationCard } from '../components/FreundeschallengeKonfigurationCard';
 import { NutzerverwaltungManager } from '../components/NutzerverwaltungManager';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -18,8 +17,6 @@ export function AdminHome() {
   const [name, setName] = useState('');
   const [altersgruppe, setAltersgruppe] = useState<Altersgruppe>('U9');
   const [submitting, setSubmitting] = useState(false);
-
-  const [brandingTeam, setBrandingTeam] = useState<Team | null>(null);
 
   const [deleteTeamTarget, setDeleteTeamTarget] = useState<Team | null>(null);
   const [deletingTeam, setDeletingTeam] = useState(false);
@@ -105,17 +102,6 @@ export function AdminHome() {
         </form>
       </div>
 
-      {brandingTeam && (
-        <TeamBrandingForm
-          team={brandingTeam}
-          onCancel={() => setBrandingTeam(null)}
-          onSaved={(updated) => {
-            setTeams((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-            setBrandingTeam(null);
-          }}
-        />
-      )}
-
       <div className="card">
         <h2>Teams</h2>
         {loading && <p>Wird geladen …</p>}
@@ -135,15 +121,12 @@ export function AdminHome() {
                 }}
               >
                 <img
-                  src={team.logo_url || '/logo-bulldozers_farbig.png'}
+                  src="/logo-bulldozers_farbig.png"
                   alt=""
                   style={{ width: 32, height: 32, objectFit: 'contain', borderRadius: 8 }}
                 />
                 <span style={{ flex: 1 }}>{team.name}</span>
                 <span style={{ color: 'var(--color-text-muted)' }}>{team.altersgruppe}</span>
-                <button className="btn-secondary" onClick={() => setBrandingTeam(team)}>
-                  Branding
-                </button>
                 <button className="btn-danger" onClick={() => setDeleteTeamTarget(team)}>
                   Löschen
                 </button>

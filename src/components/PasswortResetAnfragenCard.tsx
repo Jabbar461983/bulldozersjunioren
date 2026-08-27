@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { Bell } from './icons';
 import { leseEdgeFunctionFehler } from '../lib/functionsError';
+import { PasswortEmailDialog } from './PasswortEmailDialog';
 import type { PasswortResetAnfrage, User } from '../types/database';
 
 type NutzerKurz = Pick<User, 'id' | 'vorname' | 'nachname' | 'email'>;
@@ -21,6 +22,12 @@ export function PasswortResetAnfragenCard() {
   const [aktivAnfrage, setAktivAnfrage] = useState<OffeneAnfrage | null>(null);
   const [neuesPasswort, setNeuesPasswort] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [gesetzt, setGesetzt] = useState<{
+    vorname: string;
+    nachname: string;
+    email: string;
+    password: string;
+  } | null>(null);
 
   const laden = useCallback(async () => {
     setLoading(true);
@@ -88,6 +95,12 @@ export function PasswortResetAnfragenCard() {
       }
       if (data?.error) throw new Error(data.error);
 
+      setGesetzt({
+        vorname: aktivAnfrage.nutzer?.vorname ?? '',
+        nachname: aktivAnfrage.nutzer?.nachname ?? '',
+        email: aktivAnfrage.nutzer?.email ?? '',
+        password: neuesPasswort,
+      });
       setAktivAnfrage(null);
       setNeuesPasswort('');
       await laden();
@@ -187,6 +200,16 @@ export function PasswortResetAnfragenCard() {
             </button>
           </div>
         </form>
+      )}
+
+      {gesetzt && (
+        <PasswortEmailDialog
+          vorname={gesetzt.vorname}
+          nachname={gesetzt.nachname}
+          email={gesetzt.email}
+          password={gesetzt.password}
+          onClose={() => setGesetzt(null)}
+        />
       )}
     </div>
   );

@@ -8,11 +8,10 @@ import { ConfirmDialog } from './ConfirmDialog';
 
 const ROLE_LABELS: Record<Rolle, string> = {
   junior: 'Junior',
-  trainer: 'Trainer',
   admin: 'Admin',
 };
 
-const ROLLEN: Rolle[] = ['junior', 'trainer', 'admin'];
+const ROLLEN: Rolle[] = ['junior', 'admin'];
 
 interface NutzerverwaltungManagerProps {
   teams: Team[];
