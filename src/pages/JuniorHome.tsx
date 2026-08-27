@@ -235,7 +235,10 @@ export function JuniorHome() {
           })}
       </div>
 
-      <RanglisteCard />
+      <Link to="/junior/freundeschallenge" className="btn-freundeschallenge" style={{ margin: '0 16px 16px' }}>
+        <Users size={22} strokeWidth={2} aria-hidden="true" />
+        Freundeschallenge
+      </Link>
 
       <div className="level-actions" style={{ margin: '0 16px 16px' }}>
         <Link to="/junior/profil" className="btn-level">
@@ -246,11 +249,9 @@ export function JuniorHome() {
           <List size={18} strokeWidth={2} aria-hidden="true" />
           Mein Verlauf
         </Link>
-        <Link to="/junior/freundeschallenge" className="btn-level">
-          <Users size={18} strokeWidth={2} aria-hidden="true" />
-          Freundeschallenge
-        </Link>
       </div>
+
+      <RanglisteCard />
     </DashboardLayout>
   );
 }

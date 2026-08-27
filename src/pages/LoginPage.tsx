@@ -30,52 +30,58 @@ export function LoginPage() {
 
   return (
     <div className="app-shell">
-      <div className="auth-card">
-        <div className="brand">
+      <div className="auth-card auth-card--split">
+        <div className="auth-hero">
           <img
             src="/logo-bulldozers_farbig.png"
             alt="Streethockeyclub Bulldozers"
-            className="brand-logo"
+            className="auth-hero-logo"
           />
-          <div>
-            <h1 style={{ fontSize: '1.25rem' }}>Bulldozers Challenge</h1>
-          </div>
+          <div className="auth-hero-eyebrow">SHC Bulldozers Kernenried – Zauggenried</div>
+          <h1 className="auth-hero-title">
+            Junioren
+            <br />
+            Training
+          </h1>
+          <p className="auth-hero-claim">Trainiere zuhause, sammle Punkte, steig im Level auf.</p>
         </div>
 
-        {error && <div className="alert-error">{error}</div>}
+        <div className="auth-form-zone">
+          {error && <div className="alert-error">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <div className="field">
-            <label htmlFor="email">E-Mail</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="password">Passwort</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <button className="btn-primary" type="submit" disabled={submitting}>
-            {submitting ? 'Anmelden …' : 'Anmelden'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit}>
+            <div className="field">
+              <label htmlFor="email">E-Mail</label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="password">Passwort</label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <button className="btn-primary" type="submit" disabled={submitting}>
+              {submitting ? 'Anmelden …' : 'Anmelden'}
+            </button>
+          </form>
 
-        <div className="form-footer">
-          Noch kein Konto? <Link to="/register">Jetzt registrieren</Link>
-          <br />
-          <Link to="/passwort-vergessen">Passwort vergessen?</Link>
+          <div className="form-footer">
+            Noch kein Konto? <Link to="/register">Jetzt registrieren</Link>
+            <br />
+            <Link to="/passwort-vergessen">Passwort vergessen?</Link>
+          </div>
         </div>
       </div>
     </div>

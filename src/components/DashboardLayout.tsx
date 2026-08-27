@@ -31,8 +31,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             </h1>
             {profile && (
               <div className="dashboard-role-row">
-                <span className="role-pill">{ROLE_LABELS[profile.rolle]}</span>
-                {team?.altersgruppe && <span className="role-pill role-pill--alt">{team.altersgruppe}</span>}
+                <span className="role-pill">{team?.name ?? ROLE_LABELS[profile.rolle]}</span>
               </div>
             )}
           </div>
