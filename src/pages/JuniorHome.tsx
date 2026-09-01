@@ -7,6 +7,7 @@ import { Maskottchen } from '../components/Maskottchen';
 import { PushOnboarding } from '../components/PushOnboarding';
 import { RanglisteCard } from '../components/RanglisteCard';
 import { HerzenAuswahl } from '../components/HerzenAuswahl';
+import { FreundeschallengeStatus } from '../components/FreundeschallengeStatus';
 import { Award, Flame, KategorieIcon, List, OrtIcon, Users } from '../components/icons';
 import { KATEGORIE_FARBEN, KATEGORIE_LABELS, KATEGORIEN } from '../lib/constants';
 import { effektiverTagesStreak } from '../lib/gamification';
@@ -239,6 +240,8 @@ export function JuniorHome() {
         <Users size={22} strokeWidth={2} aria-hidden="true" />
         Freundeschallenge
       </Link>
+
+      <FreundeschallengeStatus challenges={challenges} />
 
       <div className="level-actions" style={{ margin: '0 16px 16px' }}>
         <Link to="/junior/profil" className="btn-level">
